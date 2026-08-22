@@ -1,0 +1,176 @@
+/* ============================================================
+   MEDITRACK — "PULSE" THEME — global design tokens
+   Imported once in main.jsx. Component CSS files (Login.css,
+   Register.css, Home.css ...) build on top of these variables.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --ink: #0B0B10;
+  --ink-soft: #17171f;
+  --paper: #FAF7EF;
+  --paper-dim: #F0ECE0;
+  --card: #FFFFFF;
+
+  --lime: #D6FF3F;
+  --lime-dim: #eaffa8;
+  --pink: #FF3E9A;
+  --pink-dim: #ffd4ea;
+  --cyan: #3FE0FF;
+  --cyan-dim: #cff7ff;
+  --danger: #FF4D4D;
+  --danger-dim: #ffd9d9;
+  --amber: #FFB020;
+  --amber-dim: #fff0cf;
+
+  --line: var(--ink);
+  --line-w: 3px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 5px 5px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-hover: 7px 7px 0 var(--ink);
+
+  --font-display: 'Archivo Black', 'Space Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(214,255,63,0.18), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(255,62,154,0.14), transparent 40%),
+    var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.01em; margin: 0; }
+
+::selection { background: var(--lime); color: var(--ink); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--paper-dim); }
+::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 20px; border: 2px solid var(--paper-dim); }
+
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+/* ===================== SHARED ATOMS ===================== */
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 22px;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow); }
+.btn:active { transform: translate(0, 0); box-shadow: 0 0 0 var(--ink); }
+.btn:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: var(--shadow-sm); }
+
+.btn-primary { background: var(--lime); }
+.btn-secondary { background: var(--cyan); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-large { padding: 16px 28px; font-size: 15px; width: 100%; border-radius: var(--radius); }
+.btn-small { padding: 7px 14px; font-size: 11.5px; box-shadow: 2px 2px 0 var(--ink); border-width: 2px; border-radius: 7px; }
+.btn-small:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); }
+
+.form-group { margin-bottom: 18px; }
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 7px;
+  color: var(--ink);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  padding: 12px 14px;
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  outline-offset: 2px;
+}
+
+.form-group input::placeholder, .form-group textarea::placeholder { color: #a3a096; }
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: 3px solid var(--lime);
+  outline-offset: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 20px;
+}
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+.role-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.role-radio {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--card);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.role-radio:has(input:checked) { background: var(--lime); }
+
+.field-error {
+  color: #B00030;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.form-banner-error {
+  background: var(--danger-dim);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}

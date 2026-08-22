@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.route.js';
+<<<<<<< HEAD
 import medicineRouter from './routes/medicine.route.js';
 import purchaseRouter from './routes/purchase.route.js';
 import reportRouter from './routes/report.route.js';
@@ -9,6 +10,9 @@ import storeRouter from './routes/store.route.js';
 import shareRouter from './routes/share.route.js';
 import dashboardRouter from './routes/dashboard.route.js';
 import { errorHandler } from './middleware/errorHandler.js';
+=======
+import cors from 'cors';
+>>>>>>> ac68ec52681e3d0752e1063cb25bdded3f4a914a
 
 const app = express();
 
@@ -16,6 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
 
 app.use('/api/auth', authRouter);
 app.use('/api/medicines', medicineRouter);
