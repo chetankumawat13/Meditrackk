@@ -2,17 +2,16 @@ import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.route.js';
-<<<<<<< HEAD
+
 import medicineRouter from './routes/medicine.route.js';
 import purchaseRouter from './routes/purchase.route.js';
 import reportRouter from './routes/report.route.js';
 import storeRouter from './routes/store.route.js';
+import userRouter from './routes/user.route.js';
 import shareRouter from './routes/share.route.js';
 import dashboardRouter from './routes/dashboard.route.js';
 import { errorHandler } from './middleware/errorHandler.js';
-=======
 import cors from 'cors';
->>>>>>> ac68ec52681e3d0752e1063cb25bdded3f4a914a
 
 const app = express();
 
@@ -30,6 +29,7 @@ app.use('/api/medicines', medicineRouter);
 app.use('/api/purchases', purchaseRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/stores', storeRouter);
+app.use('/api/users', userRouter);
 app.use('/api/share', shareRouter);
 app.use('/api/dashboard', dashboardRouter);
 

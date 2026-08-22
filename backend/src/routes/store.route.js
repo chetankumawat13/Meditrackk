@@ -4,6 +4,7 @@ import { verifyToken, verifyStore, verifyPatient } from "../middleware/auth.midd
 
 const storeRouter = Router();
 
+storeRouter.get('/me', verifyToken, verifyStore, getStoreProfile);
 storeRouter.get('/all', getAllStores);
 storeRouter.get('/profile', verifyToken, verifyStore, getStoreProfile);
 storeRouter.put('/profile', verifyToken, verifyStore, updateStoreProfile);
