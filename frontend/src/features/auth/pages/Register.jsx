@@ -1,0 +1,175 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useAuth } from '../hooks/useAuth.js';
+import './Register.css';
+
+const initialForm = {
+  fullname: '',
+  contact: '',
+  email: '',
+  password: '',
+  dateOfBirth: '',
+  gender: '',
+  address: '',
+};
+
+const Register = () => {
+  const navigate = useNavigate();
+  const { handleRegister, loading, error } = useAuth();
+  const [form, setForm] = useState(initialForm);
+
+  function updateField(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    try {
+      await handleRegister(form);
+      navigate('/');
+    } catch {
+      // error is already reflected in redux state and shown below
+    }
+  }
+
+  return (
+    <div className="register-screen">
+      <div className="register-container">
+        <Link to="/" className="register-back">
+          &larr; Back to site
+        </Link>
+
+        <div className="register-header">
+          <h1>MediTrack</h1>
+          <p>Digital Medication History &amp; Safety Monitoring</p>
+        </div>
+
+        <div className="register-tabs">
+          <Link to="/login" className="register-tab-btn">
+            Login
+          </Link>
+          <span className="register-tab-btn active">Register</span>
+        </div>
+
+        {error && <div className="form-banner-error">{error}</div>}
+
+        <form className="register-form" onSubmit={onSubmit}>
+          <div className="form-group">
+            <label htmlFor="regFullname">Full Name</label>
+            <input
+              type="text"
+              id="regFullname"
+              placeholder="Your full name"
+              value={form.fullname}
+              onChange={(e) => updateField('fullname', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="regContact">Mobile Number</label>
+              <input
+                type="text"
+                id="regContact"
+                placeholder="10-digit mobile number"
+                value={form.contact}
+                onChange={(e) => updateField('contact', e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="regDob">Date of Birth</label>
+              <input
+                type="date"
+                id="regDob"
+                value={form.dateOfBirth}
+                onChange={(e) => updateField('dateOfBirth', e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Gender</label>
+            <div className="role-selector">
+              <label className="role-radio">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  checked={form.gender === 'female'}
+                  onChange={(e) => updateField('gender', e.target.value)}
+                  required
+                />
+                <span>Female</span>
+              </label>
+              <label className="role-radio">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked={form.gender === 'male'}
+                  onChange={(e) => updateField('gender', e.target.value)}
+                />
+                <span>Male</span>
+              </label>
+              <label className="role-radio">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="other"
+                  checked={form.gender === 'other'}
+                  onChange={(e) => updateField('gender', e.target.value)}
+                />
+                <span>Other</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="regAddress">Address</label>
+            <textarea
+              id="regAddress"
+              rows="3"
+              placeholder="Street, city, state"
+              value={form.address}
+              onChange={(e) => updateField('address', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="regEmail">Email</label>
+            <input
+              type="email"
+              id="regEmail"
+              placeholder="Enter email"
+              value={form.email}
+              onChange={(e) => updateField('email', e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="regPassword">Password</label>
+            <input
+              type="password"
+              id="regPassword"
+              placeholder="Create password"
+              value={form.password}
+              onChange={(e) => updateField('password', e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary btn-large" disabled={loading}>
+            {loading ? 'Creating account...' : 'Register'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Register;
