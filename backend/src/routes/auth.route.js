@@ -1,16 +1,13 @@
 import { Router } from "express";
-import { registerPatientController, registerStoreController, patientLoginController, storeLoginController } from "../controllers/auth.controller.js";
+import { registerPatient, registerStore, patientLogin, storeLogin, logout } from "../controllers/auth.controller.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 const authRouter = Router();
 
+authRouter.post('/register/patient', registerPatient);
+authRouter.post('/register/store', registerStore);
+authRouter.post('/login/patient', patientLogin);
+authRouter.post('/login/store', storeLogin);
+authRouter.post('/logout', verifyToken, logout);
 
-authRouter.post('/register/patient',registerPatientController)
-
-authRouter.post('/register/store',registerStoreController)
-
-
-authRouter.post('/login/patient',patientLoginController)
-
-authRouter.post('/login/store',storeLoginController)
-
-export default authRouter
+export default authRouter;

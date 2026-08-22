@@ -1,49 +1,59 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    email:{
-        type:String,
-        unique:[true,"With this email account already created"],
+    email: {
+        type: String,
+        unique: [true, "User already exists with this email"],
+        sparse: true,
+        lowercase: true,
     },
-    contact:{
-        type:String,
-        unique:[true,"With this contact number account already created"],
-        required:[true,"contact is required to create account"],
+    contact: {
+        type: String,
+        unique: [true, "User already exists with this contact number"],
+        required: [true, "Contact number is required"],
     },
-    fullname:{
-        type:String
+    fullname: {
+        type: String,
+        required: [true, "Full name is required"],
     },
-    password:{
-        type:String
+    password: {
+        type: String,
+        required: [true, "Password is required"],
     },
-    role:{
-        type:String,
-        enum:["patient","store"],
-        default:"patient"
+    role: {
+        type: String,
+        enum: ["patient"],
+        default: "patient"
     },
-    patientId:{
-        type:String
+    patientId: {
+        type: String,
+        unique: true,
     },
-    dateOfBirth:{
-        type:Date
+    dateOfBirth: Date,
+    gender: {
+        type: String,
+        enum: ["male", "female", "other"],
     },
-    gender:{
-        type:String
+    address: {
+        street: String,
+        city: String,
+        state: String,
+        pincode: String
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
 
-    address:{
-        street:String,
-        city:String,
-        state:String,
-        pincode:String
-    },
-    isActive:{
-        type:Boolean
-    },
-    createdAt:Date,
-    updateAt:Date
-})
-
-const userModel = mongoose.model("user",userSchema);
+const userModel = mongoose.model("user", userSchema);
 
 export default userModel;
