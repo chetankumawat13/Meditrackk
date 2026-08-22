@@ -18,7 +18,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await handleLogin({ email: form.email, password: form.password });
-      navigate('/');
+      navigate('/dashboard');
     } catch {
       // error is already reflected in redux state and shown below
     }

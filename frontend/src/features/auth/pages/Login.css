@@ -118,6 +118,10 @@
 }
 .login-demo-credentials p { margin: 2px 0; }
 
+a{
+  text-decoration: none;
+}
+
 @media (max-width: 640px) {
   .login-screen { padding: 24px 14px; }
   .login-container { padding: 26px 20px; border-radius: 16px; }
