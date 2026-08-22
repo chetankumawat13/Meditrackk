@@ -1,0 +1,42 @@
+.receipt-content { max-width: 480px; }
+
+.receipt-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 3px dashed var(--ink); }
+.receipt-header h1 { font-size: 22px; text-transform: uppercase; }
+.receipt-header p { font-family: var(--font-mono); font-size: 12px; color: #6b6a63; margin-top: 6px; }
+
+.receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.receipt-table td { padding: 6px 2px; font-size: 13px; }
+.receipt-table td:last-child { text-align: right; font-family: var(--font-mono); }
+
+.receipt h3 { font-size: 15px; text-transform: uppercase; margin-bottom: 10px; }
+
+.receipt-items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.receipt-item {
+  display: grid;
+  grid-template-columns: 2fr 0.6fr 1fr 1fr;
+  gap: 6px;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  padding: 8px 4px;
+  background: var(--paper);
+  border-radius: 6px;
+}
+
+.receipt-totals .receipt-total td {
+  font-family: var(--font-display);
+  font-size: 15px;
+  border-top: 2px solid var(--ink);
+  padding-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .receipt-item { grid-template-columns: 1.6fr 0.5fr 0.9fr 0.9fr; font-size: 11px; padding: 7px 4px; }
+  .receipt-header h1 { font-size: 19px; }
+}
+
+@media (max-width: 400px) {
+  .receipt-item { grid-template-columns: 1fr; gap: 2px; }
+  .receipt-item > div:nth-child(2)::before { content: "Qty: "; }
+  .receipt-item > div:nth-child(3)::before { content: "Rate: "; }
+  .receipt-item > div:nth-child(4)::before { content: "Amount: "; }
+}

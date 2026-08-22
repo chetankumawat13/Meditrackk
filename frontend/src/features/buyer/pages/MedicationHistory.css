@@ -1,0 +1,51 @@
+.history-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  padding-left: 26px;
+}
+.history-timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px; top: 6px; bottom: 6px;
+  width: 3px;
+  background: repeating-linear-gradient(var(--ink) 0 6px, transparent 6px 11px);
+}
+
+.history-timeline-item {
+  position: relative;
+  background: var(--card);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.history-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -26px; top: 22px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--lime);
+  border: 3px solid var(--ink);
+}
+
+.history-date {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #6b6a63;
+  text-transform: uppercase;
+}
+
+.history-content { margin-top: 8px; }
+.history-medicine-name { font-weight: 700; font-size: 14.5px; margin-top: 10px; }
+.history-medicine-name:first-child { margin-top: 0; }
+
+.history-details { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.history-detail { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed #ddd9c9; padding-bottom: 6px; }
+.history-detail-label { color: #6b6a63; font-weight: 600; }
+.history-detail-value { font-family: var(--font-mono); font-weight: 700; }
+
+.history-actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }

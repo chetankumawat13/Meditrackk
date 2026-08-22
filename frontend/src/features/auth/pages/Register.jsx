@@ -26,7 +26,7 @@ const Register = () => {
     e.preventDefault();
     try {
       await handleRegister(form);
-      navigate('/');
+      navigate('/buyer');
     } catch {
       // error is already reflected in redux state and shown below
     }

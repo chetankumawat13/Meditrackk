@@ -1,0 +1,97 @@
+.sale-form-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.sale-form-panel {
+  background: var(--card);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+.sale-form-panel h2 {
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed var(--ink);
+}
+
+.search-patient { display: flex; flex-direction: column; gap: 10px; }
+.search-patient .btn { align-self: flex-start; }
+
+.patient-search-results { margin-top: 20px; }
+.patient-search-results h3 { font-size: 13px; text-transform: uppercase; margin-bottom: 10px; }
+
+.patient-results-list { display: flex; flex-direction: column; gap: 12px; }
+
+.sale-patient-item {
+  background: var(--card);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.sale-patient-item:hover { background: var(--lime-dim); }
+.sale-patient-item-name { font-family: var(--font-display); font-size: 15px; margin-bottom: 8px; text-transform: uppercase; }
+.sale-patient-item-detail { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+.sale-patient-item-detail span:first-child { color: #6b6a63; font-weight: 600; }
+.sale-patient-item-detail span:last-child { font-family: var(--font-mono); font-weight: 700; }
+
+.selected-patient-card {
+  margin-top: 16px;
+  background: var(--lime-dim);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.selected-patient-card h3 { text-transform: uppercase; font-size: 13px; margin-bottom: 10px; }
+
+.selected-patient-card .profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.selected-patient-card .profile-info-row span:first-child { color: #57554d; font-weight: 600; }
+.selected-patient-card .profile-info-row span:last-child { font-family: var(--font-mono); font-weight: 700; }
+
+.medicine-selector { margin-bottom: 20px; }
+
+.sale-items-list { display: flex; flex-direction: column; gap: 10px; }
+
+.sale-item {
+  display: flex;
+  align-items: center;
+  gap: 18px 22px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+}
+.sale-item-details { display: flex; flex-direction: column; gap: 2px; }
+.sale-item-label { font-size: 10px; text-transform: uppercase; color: #6b6a63; font-weight: 700; letter-spacing: 0.04em; }
+
+.sale-summary table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.sale-summary td { padding: 10px 4px; border-bottom: 1px dashed #ddd9c9; font-size: 14px; }
+.sale-summary .amount { font-family: var(--font-mono); font-weight: 700; text-align: right; }
+.sale-summary .summary-total td { font-family: var(--font-display); font-size: 17px; border-bottom: none; border-top: 2px solid var(--ink); padding-top: 14px; }
+
+.payment-status { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.payment-status label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; }
+
+.prescription-section { margin-top: 20px; }
+.prescription-section h3 { font-size: 14px; text-transform: uppercase; margin-bottom: 6px; }
+.prescription-section > p { font-size: 13px; margin: 0 0 10px; }
+
+@media (max-width: 640px) {
+  .sale-form-container { grid-template-columns: 1fr; }
+  .sale-form-panel { padding: 16px; }
+  .sale-item { flex-direction: column; align-items: stretch; gap: 8px; }
+  .sale-item > .action-btn { align-self: flex-end; }
+}

@@ -1,9 +1,6 @@
-import axios from 'axios';
+import apiClient from '../../../shared/api/client.js';
 
-const authApi = axios.create({
-  baseURL: 'http://localhost:3000/api/auth',
-  withCredentials: true,
-});
+const authApi = apiClient;
 
 export async function register({
   fullname,
@@ -14,7 +11,7 @@ export async function register({
   gender,
   address,
 }) {
-  const response = await authApi.post('/register/patient', {
+  const response = await authApi.post('/auth/register/patient', {
     fullname,
     contact,
     email,
@@ -27,12 +24,19 @@ export async function register({
   return response.data;
 }
 
-export async function login({ email, password }) {
-  const response = await authApi.post('/login/patient', {
-    email,
+export async function login({ email, password, role = 'buyer' }) {
+  const isContact = !email.includes('@');
+  const response = await authApi.post(`/auth/login/${role === 'seller' ? 'store' : 'patient'}`, {
+    ...(isContact ? { contact: email } : { email }),
+    ...(role === 'seller' ? { storeEmail: email } : {}),
     password,
   });
 
+  return response.data;
+}
+
+export async function logout() {
+  const response = await authApi.post('/auth/logout');
   return response.data;
 }
 

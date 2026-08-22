@@ -1,12 +1,14 @@
-import axios from 'axios';
+import apiClient from '../../../shared/api/client.js';
 
-const storesApi = axios.create({
-  baseURL: 'http://localhost:3000/api/stores',
-  withCredentials: true,
-});
+const storesApi = apiClient;
 
 export async function getCurrentStore() {
   const response = await storesApi.get('/me');
+  return response.data;
+}
+
+export async function getAllStores() {
+  const response = await storesApi.get('/all');
   return response.data;
 }
 

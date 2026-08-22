@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading, setUser, setError, clearAuthError, logout } from '../state/auth.slice.js';
-import { register, login } from '../api/auth.api.js';
+import { register, login, logout as logoutRequest } from '../api/auth.api.js';
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -27,8 +27,9 @@ export const useAuth = () => {
         gender,
         address,
       });
-      dispatch(setUser(data.user));
-      return data.user;
+      const user = data.user || data.store;
+      dispatch(setUser(user));
+      return user;
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Registration failed. Please try again.';
@@ -39,13 +40,14 @@ export const useAuth = () => {
     }
   }
 
-  async function handleLogin({ email, password }) {
+  async function handleLogin({ email, password, role }) {
     dispatch(setLoading(true));
     dispatch(clearAuthError());
     try {
-      const data = await login({ email, password });
-      dispatch(setUser(data.user));
-      return data.user;
+      const data = await login({ email, password, role });
+      const user = data.user || data.store;
+      dispatch(setUser(user));
+      return user;
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Invalid email or password.';
@@ -56,8 +58,12 @@ export const useAuth = () => {
     }
   }
 
-  function handleLogout() {
-    dispatch(logout());
+  async function handleLogout() {
+    try {
+      await logoutRequest();
+    } finally {
+      dispatch(logout());
+    }
   }
 
   return {

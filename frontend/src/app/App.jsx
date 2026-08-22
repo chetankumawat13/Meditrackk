@@ -1,19 +1,14 @@
 import React from 'react'
 import { MainRouter } from './routes/MainRouter.jsx'
 import { RouterProvider } from 'react-router'
-import { useUsers } from '../features/users/hooks/useUsers.js'
-import { useEffect } from 'react'
+import AuthSessionLoader from '../features/auth/components/AuthSessionLoader.jsx'
 
 const App = () => {
-
-  const {handleGetUser} = useUsers()
-
-  useEffect(() => {
-    handleGetUser()
-  },[])
-
   return (
-    <RouterProvider router={MainRouter} />
+    <>
+      <AuthSessionLoader />
+      <RouterProvider router={MainRouter} />
+    </>
   )
 }
 

@@ -1,0 +1,17 @@
+.patients-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+  gap: 16px;
+}
+
+.patient-card-item {
+  background: var(--card);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.patient-card-name { font-family: var(--font-display); font-size: 15px; margin-bottom: 8px; text-transform: uppercase; }
+.patient-card-detail { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+.patient-card-detail span:first-child { color: #6b6a63; font-weight: 600; }
+.patient-card-detail span:last-child { font-family: var(--font-mono); font-weight: 700; }

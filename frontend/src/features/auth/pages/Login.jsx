@@ -17,8 +17,8 @@ const Login = () => {
   async function onSubmit(e) {
     e.preventDefault();
     try {
-      await handleLogin({ email: form.email, password: form.password });
-      navigate('/dashboard');
+      const user = await handleLogin({ email: form.email, password: form.password, role });
+      navigate(user?.role === 'store' ? '/seller' : '/buyer');
     } catch {
       // error is already reflected in redux state and shown below
     }

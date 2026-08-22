@@ -1,9 +1,6 @@
-import axios from 'axios';
+import apiClient from '../../../shared/api/client.js';
 
-const usersApi = axios.create({
-  baseURL: 'http://localhost:3000/api/users',
-  withCredentials: true,
-});
+const usersApi = apiClient;
 
 export async function getCurrentUser() {
   const response = await usersApi.get('/me');

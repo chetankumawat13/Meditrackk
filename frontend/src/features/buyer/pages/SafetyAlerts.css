@@ -1,0 +1,23 @@
+.alerts-container { display: flex; flex-direction: column; gap: 14px; }
+
+.alert-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--card);
+}
+
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+
+.alert-content { font-size: 13.5px; line-height: 1.55; }
+.alert-content h3 { font-family: var(--font-display); font-size: 13.5px; text-transform: uppercase; margin: 0 0 6px; }
+.alert-content p { margin: 0 0 6px; }
+.alert-content p:last-child { margin-bottom: 0; }
+.alert-disclaimer { font-size: 11px; margin-top: 8px; font-style: italic; }
+
+.alert-warning { background: var(--amber-dim); }
+.alert-danger { background: var(--danger-dim); }
+.alert-info { background: var(--cyan-dim); }

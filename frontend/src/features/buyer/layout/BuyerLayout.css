@@ -1,0 +1,121 @@
+.buyer-screen { min-height: 100vh; }
+
+.buyer-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  background: var(--ink);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: var(--line-w) solid var(--lime);
+}
+
+.buyer-navbar-brand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--paper);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.buyer-navbar-brand::before { content: "●"; color: var(--lime); margin-right: 8px; }
+
+.buyer-navbar-toggle {
+  display: none;
+  width: 42px; height: 42px;
+  align-items: center; justify-content: center;
+  background: var(--lime);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 9px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.buyer-navbar-menu { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.buyer-nav-btn {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: transparent;
+  color: #cfcdc3;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .15s ease;
+}
+.buyer-nav-btn:hover { color: var(--paper); border-color: #33323d; }
+.buyer-nav-btn.active { background: var(--lime); color: var(--ink); border-color: var(--lime); }
+.buyer-nav-btn.logout-btn { background: transparent; color: var(--danger); border-color: var(--danger); }
+.buyer-nav-btn.logout-btn:hover { background: var(--danger); color: #fff; }
+
+@media (max-width: 900px) {
+  .buyer-navbar { flex-wrap: wrap; padding: 12px 18px; gap: 10px; }
+  .buyer-navbar-toggle { display: flex; }
+  .buyer-navbar-menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 2px dashed #33323d;
+  }
+  .buyer-navbar-menu.nav-open { display: flex; }
+  .buyer-nav-btn { text-align: left; border-radius: 8px; padding: 13px 14px; font-size: 13px; width: 100%; }
+  .buyer-nav-btn.logout-btn { margin-top: 6px; }
+  .buyer-navbar-brand { font-size: 17px; }
+}
+
+/* ===================== SHARED PAGE SHELL (used by every buyer page) ===================== */
+
+.buyer-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+.buyer-page-header { margin-bottom: 32px; position: relative; }
+.buyer-page-header h1 { font-size: clamp(28px, 4vw, 42px); text-transform: uppercase; line-height: 1.02; }
+.buyer-page-header p { margin: 8px 0 0; font-size: 15px; color: #55534d; font-weight: 500; }
+.buyer-page-header::after {
+  content: "";
+  display: block;
+  margin-top: 16px;
+  height: 14px;
+  width: 220px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 14'%3E%3Cpolyline points='0,7 55,7 65,1 75,13 85,7 100,7 108,2 116,12 124,7 220,7' fill='none' stroke='%230B0B10' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+}
+
+.buyer-section-controls { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+.buyer-section-controls input { max-width: 280px; }
+
+.buyer-empty-state {
+  text-align: center;
+  padding: 34px 18px;
+  color: #8b897f;
+  font-weight: 600;
+  font-size: 13.5px;
+  border: 2px dashed #c9c6b8;
+  border-radius: var(--radius-sm);
+  background: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(11,11,16,0.02) 10px, rgba(11,11,16,0.02) 20px);
+}
+
+@media (max-width: 640px) {
+  .buyer-container { padding: 20px 14px 60px; }
+  .buyer-page-header h1 { font-size: 26px; }
+  .buyer-page-header::after { width: 160px; height: 12px; }
+}
