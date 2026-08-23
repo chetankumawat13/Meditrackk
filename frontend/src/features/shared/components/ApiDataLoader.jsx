@@ -15,6 +15,7 @@ import {
   normalizePurchase,
   normalizeReport,
 } from '../api/records.api.js';
+import './Skeleton.css';
 
 export default function ApiDataLoader() {
   const dispatch = useDispatch();

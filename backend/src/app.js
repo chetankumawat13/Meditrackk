@@ -11,6 +11,7 @@ import userRouter from './routes/user.route.js';
 import shareRouter from './routes/share.route.js';
 import dashboardRouter from './routes/dashboard.route.js';
 import prescriptionRouter from './routes/prescription.route.js';
+import aiMedicationRouter from './routes/ai_medication_route.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 
@@ -36,6 +37,7 @@ app.use('/api/users', userRouter);
 app.use('/api/share', shareRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/prescriptions', prescriptionRouter);
+app.use('/api/ai-medication', aiMedicationRouter);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({

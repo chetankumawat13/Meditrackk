@@ -37,6 +37,8 @@
   color: #6b6a63;
 }
 .dash-card-value { font-family: var(--font-mono); font-size: 19px; font-weight: 700; margin: 4px 0 0; word-break: break-word; }
+.dash-card-value .skeleton { margin-top: 5px; }
+.buyer-skeleton-list { display: flex; flex-direction: column; gap: 10px; }
 
 .dash-grid {
   display: grid;
