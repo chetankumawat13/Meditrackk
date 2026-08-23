@@ -1,0 +1,42 @@
+.prescription-reader {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 2px dashed #bdb9a9;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.prescription-reader-heading,
+.prescription-reader-result-meta,
+.prescription-reader-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prescription-reader h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.prescription-reader p,
+.prescription-reader small {
+  margin: 0;
+  color: #6b6a63;
+  font-size: 12px;
+}
+
+.prescription-upload-button { position: relative; flex-shrink: 0; }
+.prescription-upload-button input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.prescription-reader-error { margin-top: 10px !important; color: #a32626 !important; }
+.prescription-reader-result { margin-top: 14px; display: grid; gap: 8px; }
+.prescription-reader-result-meta { padding-bottom: 8px; border-bottom: 1px dashed #bdb9a9; font-size: 12px; }
+.prescription-reader-result-meta span { color: #6b6a63; text-transform: capitalize; }
+.prescription-reader-item { padding: 8px 0; font-size: 13px; }
+.prescription-reader-muted { padding-top: 4px; }
+
+@media (max-width: 640px) {
+  .prescription-reader-heading { align-items: flex-start; flex-direction: column; }
+}

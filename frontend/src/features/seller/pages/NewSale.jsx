@@ -4,6 +4,7 @@ import { addPurchase } from '../../shared/state/data.slice.js';
 import { createPurchase } from '../api/seller.api.js';
 import { fetchPatients, normalizePatient, normalizePurchase } from '../../shared/api/records.api.js';
 import CreatePatientModal from '../components/CreatePatientModal.jsx';
+import PrescriptionReader from '../components/PrescriptionReader.jsx';
 import Toast from '../../shared/components/Toast.jsx';
 import '../layout/SellerLayout.css';
 import './NewSale.css';
@@ -224,55 +225,54 @@ const NewSale = () => {
 
         <div className="sale-form-panel">
           <h2>Step 2: Add Medicines</h2>
-          {selectedPatient && (
-            <div className="medicine-selector">
-              <div className="form-group">
-                <label htmlFor="medicineSelect">Select Medicine</label>
-                <select
-                  id="medicineSelect"
-                  value={selectedMedicineId}
-                  onChange={(e) => setSelectedMedicineId(e.target.value)}
-                >
-                  <option value="">Choose a medicine...</option>
-                  {medicines.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} (₹{m.price})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label htmlFor="saleQuantity">Quantity</label>
-                  <input
-                    type="number"
-                    id="saleQuantity"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="saleUnitPrice">Unit Price (₹)</label>
-                  <input type="number" id="saleUnitPrice" value={selectedMedicine?.price || ''} readOnly />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="saleDiscount">Discount (%)</label>
-                  <input
-                    type="number"
-                    id="saleDiscount"
-                    min="0"
-                    max="100"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                  />
-                </div>
-              </div>
-              <button type="button" className="btn btn-secondary" onClick={onAddMedicineToCart}>
-                Add Medicine
-              </button>
+          <PrescriptionReader medicines={medicines} onMedicineSelect={setSelectedMedicineId} />
+          <div className="medicine-selector">
+            <div className="form-group">
+              <label htmlFor="medicineSelect">Select Medicine</label>
+              <select
+                id="medicineSelect"
+                value={selectedMedicineId}
+                onChange={(e) => setSelectedMedicineId(e.target.value)}
+              >
+                <option value="">Choose a medicine...</option>
+                {medicines.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} (₹{m.price})
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="saleQuantity">Quantity</label>
+                <input
+                  type="number"
+                  id="saleQuantity"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="saleUnitPrice">Unit Price (₹)</label>
+                <input type="number" id="saleUnitPrice" value={selectedMedicine?.price || ''} readOnly />
+              </div>
+              <div className="form-group">
+                <label htmlFor="saleDiscount">Discount (%)</label>
+                <input
+                  type="number"
+                  id="saleDiscount"
+                  min="0"
+                  max="100"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                />
+              </div>
+            </div>
+            <button type="button" className="btn btn-secondary" onClick={onAddMedicineToCart}>
+              Add Medicine
+            </button>
+          </div>
 
           <div className="sale-items-list">
             {cartItems.length === 0 ? (

@@ -52,7 +52,13 @@ MONGO_URI=mongodb://localhost:27017/meditrack
 JWT_SECRET=your_secret_key_here
 PORT=3000
 NODE_ENV=development
+GEMINI_API_KEY=your_gemini_api_key_here
+# Optional: GEMINI_MODEL=gemini-3.6-flash
 ```
+
+The store purchase page includes a handwritten prescription reader. It sends the
+uploaded image to the backend, which calls Gemini and returns detected medicine
+names. Keep `GEMINI_API_KEY` in the backend `.env`; do not expose it in the frontend.
 
 ### 3. Start Server
 ```bash
