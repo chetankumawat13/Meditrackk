@@ -131,3 +131,8 @@
   .role-selector { flex-direction: column; }
   .register-role-selector { grid-template-columns: 1fr; }
 }
+
+
+a{
+  text-decoration: none;
+}

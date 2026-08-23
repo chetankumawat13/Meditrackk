@@ -275,3 +275,7 @@
   .home-split-card { padding: 22px 20px; }
   .home-cta-banner { padding: 44px 20px; }
 }
+
+a{
+  text-decoration: none;
+}
