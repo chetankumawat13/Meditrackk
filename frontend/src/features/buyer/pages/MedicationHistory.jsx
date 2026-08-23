@@ -4,6 +4,7 @@ import { usePatient } from '../hooks/usePatient.js';
 import ReceiptModal from '../../shared/components/ReceiptModal.jsx';
 import ReportIssueModal from '../components/ReportIssueModal.jsx';
 import Toast from '../../shared/components/Toast.jsx';
+import { triggerAIMedicationCheck } from '../api/buyer.api.js';
 import '../layout/BuyerLayout.css';
 import './MedicationHistory.css';
 
@@ -14,6 +15,7 @@ const MedicationHistory = () => {
   const [receiptId, setReceiptId] = useState(null);
   const [reportReceiptId, setReportReceiptId] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [checkingMedicineId, setCheckingMedicineId] = useState(null);
 
   const history = useMemo(() => {
     return purchases
@@ -23,6 +25,18 @@ const MedicationHistory = () => {
   }, [purchases, patient.id, search]);
 
   const selectedReceipt = purchases.find((p) => p.id === receiptId);
+
+  async function runAICheck(medicineId) {
+    setCheckingMedicineId(medicineId);
+    try {
+      const result = await triggerAIMedicationCheck(medicineId);
+      setToastMessage(result.message || 'AI medication check completed');
+    } catch (error) {
+      setToastMessage(error.response?.data?.message || 'Unable to run AI medication check');
+    } finally {
+      setCheckingMedicineId(null);
+    }
+  }
 
   return (
     <section className="buyer-container">
@@ -73,6 +87,13 @@ const MedicationHistory = () => {
                         </div>
                       </div>
                     </div>
+                    <button
+                      className="btn btn-small"
+                      disabled={checkingMedicineId === item.medicineID}
+                      onClick={() => runAICheck(item.medicineID)}
+                    >
+                      {checkingMedicineId === item.medicineID ? 'Checking...' : 'Run AI Check'}
+                    </button>
                   </React.Fragment>
                 ))}
                 <div className="history-actions">

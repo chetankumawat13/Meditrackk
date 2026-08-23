@@ -1,14 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePatient } from '../hooks/usePatient.js';
 import { getSafetyAlerts } from '../hooks/useSafetyAlerts.js';
 import ReceiptModal from '../../shared/components/ReceiptModal.jsx';
+import Skeleton from '../../shared/components/Skeleton.jsx';
 import '../layout/BuyerLayout.css';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const patient = usePatient();
   const purchases = useSelector((state) => state.dataReducer.purchases);
+  const dataStatus = useSelector((state) => state.dataReducer.status);
   const [receiptId, setReceiptId] = useState(null);
 
   const patientPurchases = useMemo(
@@ -34,6 +36,7 @@ const Dashboard = () => {
 
   const activeAlertCount = useMemo(() => getSafetyAlerts(patientPurchases).length, [patientPurchases]);
   const selectedReceipt = patientPurchases.find((p) => p.id === receiptId);
+  const isLoading = dataStatus === 'idle' || dataStatus === 'loading';
 
   return (
     <section className="buyer-container">
@@ -46,31 +49,31 @@ const Dashboard = () => {
 
       <div className="dash-info-cards">
         <div className="dash-info-card">
-          <div className="dash-card-icon">👤</div>
+          {isLoading ? <Skeleton className="skeleton-icon" /> : <div className="dash-card-icon">👤</div>}
           <div className="dash-card-content">
             <h3>Patient ID</h3>
-            <p className="dash-card-value">{patient.id}</p>
+            <p className="dash-card-value">{isLoading ? <Skeleton className="skeleton-text" /> : patient.id}</p>
           </div>
         </div>
         <div className="dash-info-card">
-          <div className="dash-card-icon">📱</div>
+          {isLoading ? <Skeleton className="skeleton-icon" /> : <div className="dash-card-icon">📱</div>}
           <div className="dash-card-content">
             <h3>Mobile</h3>
-            <p className="dash-card-value">{patient.mobile}</p>
+            <p className="dash-card-value">{isLoading ? <Skeleton className="skeleton-text" /> : patient.mobile}</p>
           </div>
         </div>
         <div className="dash-info-card">
-          <div className="dash-card-icon">💊</div>
+          {isLoading ? <Skeleton className="skeleton-icon" /> : <div className="dash-card-icon">💊</div>}
           <div className="dash-card-content">
             <h3>Recent Medicines</h3>
-            <p className="dash-card-value">{patientPurchases.length}</p>
+            <p className="dash-card-value">{isLoading ? <Skeleton className="skeleton-text" /> : patientPurchases.length}</p>
           </div>
         </div>
         <div className="dash-info-card">
-          <div className="dash-card-icon">⚠️</div>
+          {isLoading ? <Skeleton className="skeleton-icon" /> : <div className="dash-card-icon">⚠️</div>}
           <div className="dash-card-content">
             <h3>Active Alerts</h3>
-            <p className="dash-card-value">{activeAlertCount}</p>
+            <p className="dash-card-value">{isLoading ? <Skeleton className="skeleton-text" /> : activeAlertCount}</p>
           </div>
         </div>
       </div>
@@ -78,7 +81,7 @@ const Dashboard = () => {
       <div className="dash-grid">
         <div className="dash-panel">
           <h2>Recent Medicines</h2>
-          {recentPurchases.length === 0 ? (
+          {isLoading ? <BuyerPanelSkeleton /> : recentPurchases.length === 0 ? (
             <p className="buyer-empty-state">No medicines in your history yet</p>
           ) : (
             <div className="dash-medicines-list">
@@ -103,7 +106,7 @@ const Dashboard = () => {
 
         <div className="dash-panel">
           <h2>Current Medications</h2>
-          {currentMedications.length === 0 ? (
+          {isLoading ? <BuyerPanelSkeleton /> : currentMedications.length === 0 ? (
             <p className="buyer-empty-state">No active medications</p>
           ) : (
             <div className="dash-medicines-list">
@@ -124,5 +127,9 @@ const Dashboard = () => {
     </section>
   );
 };
+
+function BuyerPanelSkeleton() {
+  return <div className="buyer-skeleton-list"><Skeleton className="skeleton-row" /><Skeleton className="skeleton-row" /><Skeleton className="skeleton-row" /></div>;
+}
 
 export default Dashboard;
