@@ -5,6 +5,14 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import redis from "../config/cache.js";
 
+const authCookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+};
+
 export const registerPatient = async (req, res) => {
     try {
         const { fullname, contact, email, password, dateOfBirth, gender, address } = req.body;
@@ -52,7 +60,7 @@ export const registerPatient = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, authCookieOptions);
 
         res.status(201).json({
             success: true,
@@ -118,7 +126,7 @@ export const registerStore = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, authCookieOptions);
 
         res.status(201).json({
             success: true,
@@ -181,7 +189,7 @@ export const patientLogin = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, authCookieOptions);
 
         res.status(200).json({
             success: true,
@@ -243,7 +251,7 @@ export const storeLogin = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, authCookieOptions);
 
         res.status(200).json({
             success: true,
@@ -276,7 +284,7 @@ export const logout = async (req,res) => {
             });
         }
 
-        res.clearCookie('token');
+        res.clearCookie('token', authCookieOptions);
         
         await redis.set(
             token,
