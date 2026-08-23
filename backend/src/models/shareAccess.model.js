@@ -19,7 +19,7 @@ const shareAccessSchema = new mongoose.Schema({
     accessibleEmail: String,
     dataType: {
         type: [String],
-        enum: ["purchases", "reports", "all"],
+        enum: ["contact", "medicines", "purchases", "reports", "all"],
         default: ["all"]
     },
     isActive: {

@@ -12,6 +12,7 @@ const links = [
   { to: '/seller/patients', label: 'Patients' },
   { to: '/seller/sales', label: 'Sales History' },
   { to: '/seller/reports', label: 'Reports' },
+  { to: '/seller/shared-records', label: 'Get Shared Info' },
 ];
 
 const SellerLayout = () => {

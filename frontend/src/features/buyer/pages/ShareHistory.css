@@ -22,6 +22,25 @@
 
 .share-code-display { margin-top: 20px; }
 
+.share-options { display: grid; gap: 8px; margin: 16px 0; }
+.share-label { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.share-option { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.share-option input { accent-color: var(--ink); }
+.share-expiry { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 16px; }
+.share-expiry select, .access-code-form input {
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  background: var(--paper);
+  font: inherit;
+}
+.access-code-form { display: flex; gap: 8px; margin-top: 16px; }
+.access-code-form input { min-width: 0; flex: 1; font-family: var(--font-mono); text-transform: uppercase; }
+.shared-records { margin-top: 18px; border-top: 2px dashed var(--ink); padding-top: 14px; display: grid; gap: 12px; }
+.shared-records h3 { font-size: 15px; margin: 0; }
+.shared-record-section { display: grid; gap: 4px; font-size: 13px; }
+.shared-record-section strong { text-transform: uppercase; font-size: 11px; }
+
 .share-code-box {
   display: flex;
   align-items: center;
@@ -58,3 +77,8 @@
 }
 
 .text-secondary { color: #6b6a63; font-size: 12.5px; }
+
+@media (max-width: 520px) {
+  .access-code-form { flex-direction: column; }
+  .access-code-form .btn { width: 100%; }
+}

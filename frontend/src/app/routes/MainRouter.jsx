@@ -22,6 +22,7 @@ import NewSale from '../../features/seller/pages/NewSale.jsx';
 import Patients from '../../features/seller/pages/Patients.jsx';
 import SalesHistory from '../../features/seller/pages/SalesHistory.jsx';
 import SellerReports from '../../features/seller/pages/Reports.jsx';
+import SellerSharedRecords from '../../features/seller/pages/SharedRecords.jsx';
 
 export const MainRouter = createBrowserRouter([
   {
@@ -60,6 +61,7 @@ export const MainRouter = createBrowserRouter([
       { path: 'patients', element: <Patients /> },
       { path: 'sales', element: <SalesHistory /> },
       { path: 'reports', element: <SellerReports /> },
+      { path: 'shared-records', element: <SellerSharedRecords /> },
     ],
   },
 ]);

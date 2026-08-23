@@ -88,8 +88,8 @@ export async function fetchShareCodes() {
 	const response = await apiClient.get('/share/active-codes');
 	return response.data;
 }
-export async function createShareCode(patientID) {
-	const response = await apiClient.post('/share/generate-code', { patientID });
+export async function createShareCode(options = {}) {
+	const response = await apiClient.post('/share/generate-code', options);
 	return response.data;
 }
 export async function revokeShareCodeRequest(patientID, code) {
@@ -99,6 +99,11 @@ export async function revokeShareCodeRequest(patientID, code) {
 
 export async function fetchAccessLogs() {
 	const response = await apiClient.get('/share/access-logs');
+	return response.data;
+}
+
+export async function redeemShareCode(code) {
+	const response = await apiClient.get(`/share/redeem/${encodeURIComponent(code)}`);
 	return response.data;
 }
 

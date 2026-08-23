@@ -2,26 +2,39 @@ import shareAccessModel from "../models/shareAccess.model.js";
 import purchaseModel from "../models/purchase.model.js";
 import reportModel from "../models/report.model.js";
 import userModel from "../models/user.model.js";
+import crypto from "crypto";
+
+const createUniqueShare = async (shareData) => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        const shareCode = `MED-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
+        try {
+            return await shareAccessModel.create({ ...shareData, shareCode });
+        } catch (error) {
+            if (error.code !== 11000 || attempt === 4) throw error;
+        }
+    }
+};
 
 export const generateShareCode = async (req, res) => {
     try {
         const { accessibleTo, accessibleEmail, dataType, expiresIn } = req.body;
 
-        const shareCode = `MED-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        
         let expiresAt = new Date();
-        if (expiresIn) {
-            expiresAt.setDate(expiresAt.getDate() + expiresIn);
+        const days = Number(expiresIn);
+        if (Number.isFinite(days) && days > 0 && days <= 90) {
+            expiresAt.setDate(expiresAt.getDate() + days);
         } else {
             expiresAt.setDate(expiresAt.getDate() + 30);
         }
 
-        const share = await shareAccessModel.create({
-            shareCode,
+        const selectedData = Array.isArray(dataType) && dataType.length > 0
+            ? dataType
+            : ["all"];
+        const share = await createUniqueShare({
             patientId: req.user.id,
             accessibleTo: accessibleTo || "doctor",
             accessibleEmail,
-            dataType: dataType || ["all"],
+            dataType: selectedData,
             expiresAt
         });
 
@@ -146,7 +159,7 @@ export const accessSharedHistory = async (req, res) => {
         const patient = await userModel.findById(share.patientId);
         const data = {};
 
-        if (share.dataType.includes("all") || share.dataType.includes("purchases")) {
+        if (share.dataType.includes("all") || share.dataType.includes("medicines") || share.dataType.includes("purchases")) {
             data.purchases = await purchaseModel.find({
                 patientId: share.patientId
             }).select('-patientId').populate('storeId', 'storeName');
@@ -167,23 +180,33 @@ export const accessSharedHistory = async (req, res) => {
 
         await share.save();
 
-        res.status(200).json({
+        const response = {
             success: true,
-            patient: {
+            medicalRecords: data,
+            accessedAt: new Date()
+        };
+
+        if (share.dataType.includes("all") || share.dataType.includes("contact")) {
+            response.patient = {
                 name: patient.fullname,
                 patientId: patient.patientId,
                 contact: patient.contact,
                 dateOfBirth: patient.dateOfBirth,
                 gender: patient.gender,
                 address: patient.address
-            },
-            medicalRecords: data,
-            accessedAt: new Date()
-        });
+            };
+        }
+
+        res.status(200).json(response);
     } catch (error) {
         res.status(500).json({
             success: false,
             message: error.message
         });
     }
+};
+
+export const redeemShareCode = async (req, res, next) => {
+    req.query.accessedBy = req.user.fullname || req.user.email || req.user.id;
+    return accessSharedHistory(req, res, next);
 };

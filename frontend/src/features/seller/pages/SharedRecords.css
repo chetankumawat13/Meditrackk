@@ -1,0 +1,50 @@
+.seller-shared-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.seller-shared-panel {
+  background: var(--card);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.seller-shared-panel h2 {
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed var(--ink);
+}
+
+.seller-shared-panel p { color: #55534d; font-size: 13px; }
+.seller-access-form { display: grid; gap: 8px; margin-top: 18px; }
+.seller-access-form label { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.seller-access-form input {
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: var(--paper);
+  font: inherit;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+.seller-access-form .btn { justify-self: start; margin-top: 6px; }
+.shared-owner { margin-bottom: 16px; }
+.shared-info-section {
+  display: grid;
+  gap: 5px;
+  border-top: 2px solid var(--line);
+  padding: 14px 0;
+  font-size: 13px;
+}
+.shared-info-section strong { font-size: 11px; text-transform: uppercase; }
+
+@media (max-width: 520px) {
+  .seller-access-form .btn { width: 100%; }
+}
