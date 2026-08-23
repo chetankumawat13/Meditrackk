@@ -15,20 +15,32 @@ const Inventory = () => {
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [expiryFilter, setExpiryFilter] = useState('');
   const [toastMessage, setToastMessage] = useState('');
+
+  function getExpiryStatus(expiry) {
+    const expiryDate = new Date(expiry);
+    if (Number.isNaN(expiryDate.getTime())) return 'unknown';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate.setHours(0, 0, 0, 0);
+    const daysUntil = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+    if (daysUntil < 0) return 'expired';
+    if (daysUntil <= EXPIRY_WARNING_DAYS) return 'expiring';
+    return 'valid';
+  }
 
   const filtered = useMemo(() => {
     return medicines.filter(
       (m) =>
         m.name.toLowerCase().includes(search.toLowerCase()) &&
-        (category === '' || m.category === category)
+        (category === '' || m.category === category) &&
+        (expiryFilter === '' || getExpiryStatus(m.expiry) === expiryFilter)
     );
-  }, [medicines, search, category]);
+  }, [medicines, search, category, expiryFilter]);
 
-  function isExpiringSoon(expiry) {
-    const daysUntil = Math.ceil((new Date(expiry) - new Date()) / (1000 * 60 * 60 * 24));
-    return daysUntil < EXPIRY_WARNING_DAYS;
-  }
+  const expiredCount = medicines.filter((medicine) => getExpiryStatus(medicine.expiry) === 'expired').length;
+  const expiringCount = medicines.filter((medicine) => getExpiryStatus(medicine.expiry) === 'expiring').length;
 
   async function onDelete(medicine) {
     if (!window.confirm('Are you sure you want to delete this medicine?')) return;
@@ -60,6 +72,12 @@ const Inventory = () => {
               </option>
             ))}
           </select>
+          <select value={expiryFilter} onChange={(e) => setExpiryFilter(e.target.value)}>
+            <option value="">All Expiry Status</option>
+            <option value="expired">Expired ({expiredCount})</option>
+            <option value="expiring">Expiring within 30 days ({expiringCount})</option>
+            <option value="valid">Valid</option>
+          </select>
         </div>
       </div>
 
@@ -77,23 +95,22 @@ const Inventory = () => {
             <div>Actions</div>
           </div>
           {filtered.map((medicine) => (
-            <div
-              className="inventory-row"
-              key={medicine.id}
-              style={isExpiringSoon(medicine.expiry) ? { backgroundColor: '#fff3cd' } : undefined}
-            >
+            <div className={`inventory-row inventory-${getExpiryStatus(medicine.expiry)}`} key={medicine.id}>
               <div>{medicine.name}</div>
               <div>{medicine.category}</div>
               <div>₹{medicine.price}</div>
               <div>{medicine.stock}</div>
-              <div>{new Date(medicine.expiry).toLocaleDateString()}</div>
+              <div>
+                {new Date(medicine.expiry).toLocaleDateString()}
+                <span className="expiry-status">{getExpiryStatus(medicine.expiry)}</span>
+              </div>
               <div>{medicine.prescriptionRequired ? 'Yes' : 'No'}</div>
               <div className="inventory-actions">
                 <button className="action-btn" onClick={() => setToastMessage('Editing is coming soon')}>
                   Edit
                 </button>
                 <button className="action-btn" onClick={() => onDelete(medicine)}>
-                  Delete
+                  {getExpiryStatus(medicine.expiry) === 'expired' ? 'Remove Expired' : 'Delete'}
                 </button>
               </div>
             </div>

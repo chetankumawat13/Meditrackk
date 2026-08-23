@@ -10,7 +10,7 @@
 
 .inventory-header, .inventory-row {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 0.8fr 0.8fr 1fr 1.3fr;
+  grid-template-columns: 1.6fr 1fr 0.8fr 0.8fr 1.2fr 1fr 1.6fr;
   gap: 10px;
   padding: 12px 16px;
   align-items: center;
@@ -28,6 +28,11 @@
 
 .inventory-row { background: var(--card); border-top: 1px solid #eee9d8; font-family: var(--font-mono); }
 .inventory-row:hover { background: var(--lime-dim); }
+.inventory-expired { background: #ffe4e1; }
+.inventory-expiring { background: #fff3cd; }
+.expiry-status { display: block; color: #8b897f; font-family: var(--font-body); font-size: 10px; text-transform: uppercase; }
+.inventory-expired .expiry-status { color: #b42318; font-weight: 700; }
+.inventory-expiring .expiry-status { color: #8a5a00; font-weight: 700; }
 
 .inventory-actions { display: flex; gap: 8px; grid-column: -1 / -1; }
 
