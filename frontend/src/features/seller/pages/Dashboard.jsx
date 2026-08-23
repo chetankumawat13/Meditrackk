@@ -26,18 +26,28 @@ const Dashboard = () => {
   );
 
   const lowStockMedicines = useMemo(
-    () => medicines.filter((m) => m.stock < LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock),
+    () => medicines.filter((m) => m.stock <= LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock),
     [medicines]
   );
 
   const expiringMedicines = useMemo(() => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const windowEnd = new Date(today.getTime() + EXPIRY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
     return medicines.filter((m) => {
       const expiry = new Date(m.expiry);
-      return expiry <= windowEnd && expiry >= today;
+      expiry.setHours(0, 0, 0, 0);
+      return expiry <= windowEnd;
     });
   }, [medicines]);
+
+  function isExpired(expiry) {
+    const expiryDate = new Date(expiry);
+    const today = new Date();
+    expiryDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return expiryDate < today;
+  }
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
@@ -145,11 +155,14 @@ const Dashboard = () => {
           ) : (
             <div className="seller-dash-alerts">
               {expiringMedicines.map((medicine) => (
-                <div className="seller-alert seller-alert-danger" key={medicine.id}>
+                  <div className="seller-alert seller-alert-danger" key={medicine.id}>
                   <div className="seller-alert-icon">🔴</div>
                   <div className="seller-alert-content">
                     <h3>{medicine.name}</h3>
-                    <p>Expires on {new Date(medicine.expiry).toLocaleDateString()}</p>
+                      <p>
+                        {isExpired(medicine.expiry) ? 'Expired on' : 'Expires on'}{' '}
+                        {new Date(medicine.expiry).toLocaleDateString()}
+                      </p>
                   </div>
                 </div>
               ))}
