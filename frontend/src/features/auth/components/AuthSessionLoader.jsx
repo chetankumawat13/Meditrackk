@@ -19,9 +19,9 @@ export default function AuthSessionLoader() {
       if (cancelled) return;
 
       if (userResult.status === 'fulfilled' && userResult.value.user) {
-        dispatch(setUser(userResult.value.user));
+        dispatch(setUser({ ...userResult.value.user, role: userResult.value.user.role || 'patient' }));
       } else if (storeResult.status === 'fulfilled' && storeResult.value.store) {
-        dispatch(setUser(storeResult.value.store));
+        dispatch(setUser({ ...storeResult.value.store, role: storeResult.value.store.role || 'store' }));
       }
       dispatch(setLoading(false));
     }

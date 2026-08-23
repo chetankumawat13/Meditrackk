@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth.js';
 import './Register.css';
 
 const initialForm = {
+  role: 'buyer',
   fullname: '',
   contact: '',
   email: '',
@@ -11,12 +12,19 @@ const initialForm = {
   dateOfBirth: '',
   gender: '',
   address: '',
+  storeName: '',
+  storeLicenseNumber: '',
+  storeContact: '',
+  storeEmail: '',
+  storeAddress: '',
 };
 
 const Register = () => {
   const navigate = useNavigate();
   const { handleRegister, loading, error } = useAuth();
   const [form, setForm] = useState(initialForm);
+
+  const isSeller = form.role === 'seller';
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -25,8 +33,8 @@ const Register = () => {
   async function onSubmit(e) {
     e.preventDefault();
     try {
-      await handleRegister(form);
-      navigate('/buyer');
+      const account = await handleRegister(form);
+      navigate(account?.role === 'store' ? '/seller' : '/buyer');
     } catch {
       // error is already reflected in redux state and shown below
     }
@@ -51,9 +59,42 @@ const Register = () => {
           <span className="register-tab-btn active">Register</span>
         </div>
 
+        <div className="register-role-selector" aria-label="Registration type">
+          <label className={isSeller ? '' : 'selected'}>
+            <input type="radio" name="registerRole" value="buyer" checked={!isSeller} onChange={() => updateField('role', 'buyer')} />
+            Register as Patient
+          </label>
+          <label className={isSeller ? 'selected' : ''}>
+            <input type="radio" name="registerRole" value="seller" checked={isSeller} onChange={() => updateField('role', 'seller')} />
+            Register Medical Store
+          </label>
+        </div>
+
         {error && <div className="form-banner-error">{error}</div>}
 
         <form className="register-form" onSubmit={onSubmit}>
+          {isSeller ? <>
+          <div className="form-group">
+            <label htmlFor="regStoreName">Store Name</label>
+            <input type="text" id="regStoreName" placeholder="Medical store name" value={form.storeName} onChange={(e) => updateField('storeName', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="regLicense">Store License Number</label>
+            <input type="text" id="regLicense" placeholder="License number" value={form.storeLicenseNumber} onChange={(e) => updateField('storeLicenseNumber', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="regStoreContact">Store Contact</label>
+            <input type="text" id="regStoreContact" placeholder="Store mobile number" value={form.storeContact} onChange={(e) => updateField('storeContact', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="regStoreEmail">Store Email</label>
+            <input type="email" id="regStoreEmail" placeholder="Store email" value={form.storeEmail} onChange={(e) => updateField('storeEmail', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="regStoreAddress">Store Address</label>
+            <textarea id="regStoreAddress" rows="3" placeholder="Street, city, state" value={form.storeAddress} onChange={(e) => updateField('storeAddress', e.target.value)} />
+          </div>
+          </> : <>
           <div className="form-group">
             <label htmlFor="regFullname">Full Name</label>
             <input
@@ -126,8 +167,9 @@ const Register = () => {
               </label>
             </div>
           </div>
+          </>}
 
-          <div className="form-group">
+          {!isSeller && <div className="form-group">
             <label htmlFor="regAddress">Address</label>
             <textarea
               id="regAddress"
@@ -137,7 +179,7 @@ const Register = () => {
               onChange={(e) => updateField('address', e.target.value)}
               required
             />
-          </div>
+          </div>}
 
           <div className="form-group">
             <label htmlFor="regEmail">Email</label>

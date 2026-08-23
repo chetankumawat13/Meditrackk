@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Modal from '../../shared/components/Modal.jsx';
 import { addPatient } from '../../shared/state/data.slice.js';

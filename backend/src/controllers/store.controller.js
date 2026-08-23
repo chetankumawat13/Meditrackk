@@ -107,12 +107,19 @@ export const getStoreDashboard = async (req, res) => {
 
 export const getStorePatients = async (req, res) => {
     try {
+        const { search } = req.query;
         const purchases = await purchaseModel.find({ storeId: req.user.id });
-        const patientIds = [...new Set(purchases.map(p => p.patientId.toString()))];
-
-        const patients = await userModel.find({
-            _id: { $in: patientIds }
-        }).select('_id fullname contact email patientId address createdAt');
+        const filter = { role: 'patient' };
+        if (search) {
+            filter.$or = [
+                { fullname: { $regex: search, $options: 'i' } },
+                { patientId: { $regex: search, $options: 'i' } },
+                { contact: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+            ];
+        }
+        const patients = await userModel.find(filter)
+            .select('_id fullname contact email patientId address createdAt');
 
         const patientsWithStats = patients.map(patient => {
             const patientPurchases = purchases.filter(p => p.patientId.toString() === patient._id.toString());

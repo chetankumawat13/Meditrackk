@@ -3,6 +3,7 @@ import receiptModel from "../models/receipt.model.js";
 import medicineModel from "../models/medicine.model.js";
 import userModel from "../models/user.model.js";
 import storeModel from "../models/store.model.js";
+import mongoose from "mongoose";
 
 export const createPurchase = async (req, res) => {
     try {
@@ -241,7 +242,7 @@ export const getPurchaseStats = async (req, res) => {
 
 export const createPurchaseByStore = async (req, res) => {
     try {
-        const { medicines, paymentMethod, patientContact, patientName, notes } = req.body;
+        const { medicines, paymentMethod, status, patientId, patientContact, patientName, notes } = req.body;
         const storeId = req.user.id;
 
         if (!medicines || medicines.length === 0) {
@@ -251,7 +252,7 @@ export const createPurchaseByStore = async (req, res) => {
             });
         }
 
-        if (!patientContact && !patientName) {
+        if (!patientId && !patientContact && !patientName) {
             return res.status(400).json({
                 success: false,
                 message: "Patient contact or name required"
@@ -259,8 +260,21 @@ export const createPurchaseByStore = async (req, res) => {
         }
 
         let patient = null;
+        if (patientId) {
+            patient = await userModel.findOne({
+                $or: [
+                    ...(mongoose.isValidObjectId(patientId) ? [{ _id: patientId }] : []),
+                    { patientId }
+                ]
+            });
+        }
         if (patientContact) {
-            patient = await userModel.findOne({ contact: patientContact });
+            patient = patient || await userModel.findOne({
+                $or: [
+                    { contact: patientContact },
+                    { contact: { $regex: `^\\s*${String(patientContact).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s*$` } }
+                ]
+            });
         }
 
         if (!patient && patientContact) {
@@ -330,9 +344,9 @@ export const createPurchaseByStore = async (req, res) => {
             subtotal,
             gstAmount,
             total,
-            paymentMethod: paymentMethod || "cash",
+            paymentMethod: ["cash", "card", "upi", "online"].includes(paymentMethod) ? paymentMethod : "cash",
             notes,
-            status: "completed"
+            status: status === "pending" ? "pending" : "completed"
         });
 
         const store = await storeModel.findById(storeId);

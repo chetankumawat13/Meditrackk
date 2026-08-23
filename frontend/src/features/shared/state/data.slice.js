@@ -8,6 +8,8 @@ const initialState = {
   reports: [],
   shareCodes: {},
   accessLogs: {},
+  status: 'idle',
+  error: null,
 };
 
 const dataSlice = createSlice({
@@ -16,6 +18,16 @@ const dataSlice = createSlice({
   reducers: {
     replaceData: (state, action) => {
       Object.assign(state, initialState, action.payload);
+      state.status = 'succeeded';
+      state.error = null;
+    },
+    dataRequestStarted: (state) => {
+      state.status = 'loading';
+      state.error = null;
+    },
+    dataRequestFailed: (state, action) => {
+      state.status = 'failed';
+      state.error = action.payload;
     },
     addMedicine: (state, action) => {
       state.medicines.push(action.payload);
@@ -70,6 +82,7 @@ const dataSlice = createSlice({
 
 export const {
   replaceData,
+  dataRequestStarted, dataRequestFailed,
   addMedicine, updateMedicine, deleteMedicine,
   addPatient, addPurchase,
   addReport, updateReportStatus,

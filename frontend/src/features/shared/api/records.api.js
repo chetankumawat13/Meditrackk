@@ -17,9 +17,36 @@ export async function deleteMedicineRequest(id) {
 	return response.data;
 }
 
-export async function fetchPatients() {
-	const response = await apiClient.get('/stores/patients/list');
+export async function fetchStoreDashboard() {
+	const response = await apiClient.get('/dashboard/store');
 	return response.data;
+}
+
+export async function fetchStoreProfile() {
+	const response = await apiClient.get('/stores/me');
+	return response.data;
+}
+
+export async function updateStoreProfileRequest(profile) {
+	const response = await apiClient.put('/stores/profile', profile);
+	return response.data;
+}
+
+export async function fetchPatients(search = '') {
+	const response = await apiClient.get('/stores/patients/list', {
+		params: search ? { search } : undefined,
+	});
+	return response.data;
+}
+
+export function normalizePatient(patient) {
+	return {
+		...patient,
+		id: idOf(patient._id || patient.id),
+		name: patient.name || patient.fullname || '',
+		mobile: String(patient.mobile || patient.contact || ''),
+		patientId: patient.patientId || '',
+	};
 }
 export async function createPatient() {
 	throw new Error('The backend does not expose a create-patient endpoint.');
@@ -34,6 +61,11 @@ export async function createPurchase(purchase, { byStore = false } = {}) {
 	return response.data;
 }
 
+export async function fetchPurchaseStats() {
+	const response = await apiClient.get('/purchases/store/stats');
+	return response.data;
+}
+
 export async function fetchReports({ store = false } = {}) {
 	const response = await apiClient.get(store ? '/reports/store/list' : '/reports/patient/list');
 	return response.data;
@@ -44,6 +76,11 @@ export async function createReport(report) {
 }
 export async function updateReportStatusRequest(id, status) {
 	const response = await apiClient.put(`/reports/${id}/status`, { status });
+	return response.data;
+}
+
+export async function fetchReportStats() {
+	const response = await apiClient.get('/reports/store/stats');
 	return response.data;
 }
 
@@ -79,18 +116,30 @@ export function normalizeMedicine(medicine) {
 }
 
 export function normalizePurchase(purchase) {
+	const items = (purchase.items || purchase.medicines || []).map((item) => ({
+		...item,
+		medicineID: idOf(item.medicineId || item.medicineID),
+		discount: Number(item.discount || 0),
+		price: Number(item.price || 0),
+		quantity: Number(item.quantity || 0),
+	}));
+	const total = Number(purchase.total || 0);
+	const subtotal = Number(purchase.subtotal ?? total);
+	const discount = Number(purchase.discount || 0);
+	const paid = Number(purchase.paid ?? (purchase.paymentMethod ? total : 0));
+
 	return {
 		...purchase,
 		id: idOf(purchase._id || purchase.id) || purchase.purchaseId,
 		patientID: idOf(purchase.patientId || purchase.patientID),
 		storeID: idOf(purchase.storeId || purchase.storeID),
 		date: purchase.date || purchase.createdAt,
-		items: (purchase.items || purchase.medicines || []).map((item) => ({
-			...item,
-			medicineID: idOf(item.medicineId || item.medicineID),
-			discount: item.discount || 0,
-			price: item.price || 0,
-		})),
+		items,
+		total,
+		subtotal,
+		discount,
+		paid,
+		due: Number(purchase.due ?? Math.max(0, total - paid)),
 		paymentStatus: purchase.paymentStatus || purchase.status,
 	};
 }

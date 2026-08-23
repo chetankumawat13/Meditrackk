@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addMedicine } from '../../shared/state/data.slice.js';
 import { createMedicine } from '../api/seller.api.js';

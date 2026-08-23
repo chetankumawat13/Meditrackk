@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router';
 import Home from '../../features/home/pages/Home.jsx';
 import Login from '../../features/auth/pages/Login.jsx';
 import Register from '../../features/auth/pages/Register.jsx';
+import Protected from '../components/Protected.jsx';
 
 import BuyerLayout from '../../features/buyer/layout/BuyerLayout.jsx';
 import BuyerDashboard from '../../features/buyer/pages/Dashboard.jsx';
@@ -37,7 +38,7 @@ export const MainRouter = createBrowserRouter([
   },
   {
     path: '/buyer',
-    element: <BuyerLayout />,
+    element: <Protected role="patient"><BuyerLayout /></Protected>,
     children: [
       { index: true, element: <BuyerDashboard /> },
       { path: 'history', element: <MedicationHistory /> },
@@ -50,7 +51,7 @@ export const MainRouter = createBrowserRouter([
   },
   {
     path: '/seller',
-    element: <SellerLayout />,
+    element: <Protected role="store"><SellerLayout /></Protected>,
     children: [
       { index: true, element: <SellerDashboard /> },
       { path: 'inventory', element: <Inventory /> },

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addPurchase } from '../../shared/state/data.slice.js';
 import { createPurchase } from '../api/seller.api.js';
-import { normalizePurchase } from '../../shared/api/records.api.js';
-import { useStore } from '../hooks/useStore.js';
+import { fetchPatients, normalizePatient, normalizePurchase } from '../../shared/api/records.api.js';
 import CreatePatientModal from '../components/CreatePatientModal.jsx';
 import Toast from '../../shared/components/Toast.jsx';
 import '../layout/SellerLayout.css';
@@ -11,8 +10,7 @@ import './NewSale.css';
 
 const NewSale = () => {
   const dispatch = useDispatch();
-  const store = useStore();
-  const { medicines, patients } = useSelector((state) => state.dataReducer);
+  const { medicines } = useSelector((state) => state.dataReducer);
 
   const [patientSearch, setPatientSearch] = useState('');
   const [searchResults, setSearchResults] = useState(null);
@@ -27,15 +25,35 @@ const NewSale = () => {
   const [paymentStatus, setPaymentStatus] = useState('paid');
   const [prescriptionID, setPrescriptionID] = useState('');
   const [smsMessage, setSmsMessage] = useState('');
+  const [patientSearchLoading, setPatientSearchLoading] = useState(false);
 
   const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
 
-  function onSearchPatient() {
+  async function onSearchPatient() {
     const term = patientSearch.trim().toLowerCase();
-    const results = patients.filter(
-      (p) => p.id.toLowerCase().includes(term) || p.mobile.includes(term)
-    );
-    setSearchResults(results);
+    if (!term) {
+      setSearchResults([]);
+      return;
+    }
+    setPatientSearchLoading(true);
+    try {
+      const data = await fetchPatients(term);
+      let results = (data.patients || []).map(normalizePatient);
+
+      if (results.length === 0 && /^\d+$/.test(term)) {
+        const allPatients = await fetchPatients();
+        results = (allPatients.patients || [])
+          .map(normalizePatient)
+          .filter((patient) => patient.mobile.replace(/\D/g, '').includes(term));
+      }
+
+      setSearchResults(results);
+    } catch (error) {
+      setSearchResults([]);
+      setSmsMessage(error?.response?.data?.message || 'Unable to search patients');
+    } finally {
+      setPatientSearchLoading(false);
+    }
   }
 
   function onSelectPatient(patient) {
@@ -103,8 +121,10 @@ const NewSale = () => {
 
     const purchaseRequest = {
       medicines: cartItems.map((item) => ({ medicineId: item.medicineID, quantity: item.quantity })),
-      paymentMethod: paymentStatus,
-      patientContact: selectedPatient.mobile,
+      paymentMethod: 'cash',
+      status: paymentStatus === 'paid' ? 'completed' : 'pending',
+      patientId: selectedPatient.id,
+      patientContact: selectedPatient.mobile || selectedPatient.contact,
       notes: prescriptionID,
     };
 
@@ -143,7 +163,7 @@ const NewSale = () => {
               />
             </div>
             <button type="button" className="btn btn-secondary" onClick={onSearchPatient}>
-              Search
+              {patientSearchLoading ? 'Searching...' : 'Search'}
             </button>
             <button
               type="button"

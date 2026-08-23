@@ -1,12 +1,14 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading, setUser, setError, clearAuthError, logout } from '../state/auth.slice.js';
 import { register, login, logout as logoutRequest } from '../api/auth.api.js';
+import { clearSellerData } from '../../seller/state/seller.slice.js';
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const { user, loading, error } = useSelector((state) => state.authReducer);
 
   async function handleRegister({
+    role = 'buyer',
     fullname,
     contact,
     email,
@@ -14,11 +16,17 @@ export const useAuth = () => {
     dateOfBirth,
     gender,
     address,
+    storeName,
+    storeLicenseNumber,
+    storeContact,
+    storeEmail,
+    storeAddress,
   }) {
     dispatch(setLoading(true));
     dispatch(clearAuthError());
     try {
       const data = await register({
+        role,
         fullname,
         contact,
         email,
@@ -26,6 +34,11 @@ export const useAuth = () => {
         dateOfBirth,
         gender,
         address,
+        storeName,
+        storeLicenseNumber,
+        storeContact,
+        storeEmail,
+        storeAddress,
       });
       const user = data.user || data.store;
       dispatch(setUser(user));
@@ -63,6 +76,7 @@ export const useAuth = () => {
       await logoutRequest();
     } finally {
       dispatch(logout());
+      dispatch(clearSellerData());
     }
   }
 

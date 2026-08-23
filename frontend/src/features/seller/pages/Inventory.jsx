@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteMedicine } from '../../shared/state/data.slice.js';
 import { deleteMedicineRequest } from '../api/seller.api.js';

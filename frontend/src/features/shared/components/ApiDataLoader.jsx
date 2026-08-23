@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { replaceData } from '../state/data.slice.js';
+import { dataRequestFailed, dataRequestStarted, replaceData } from '../state/data.slice.js';
 import { getAllStores, getCurrentStore } from '../../stores/api/store.api.js';
 import { getCurrentUser } from '../../users/api/users.api.js';
 import {
@@ -11,6 +11,7 @@ import {
   fetchShareCodes,
   fetchAccessLogs,
   normalizeMedicine,
+  normalizePatient,
   normalizePurchase,
   normalizeReport,
 } from '../api/records.api.js';
@@ -24,6 +25,7 @@ export default function ApiDataLoader() {
     let cancelled = false;
 
     async function load() {
+      dispatch(dataRequestStarted());
       const store = role === 'store';
       const requests = [
         fetchMedicines({ inventory: store }),
@@ -46,12 +48,7 @@ export default function ApiDataLoader() {
       if (store) {
         const patientData = results[3];
         const storeData = await getCurrentStore();
-        data.patients = (patientData.patients || []).map((patient) => ({
-          ...patient,
-          id: patient._id || patient.id,
-          name: patient.name || patient.fullname,
-          mobile: patient.mobile || patient.contact,
-        }));
+        data.patients = (patientData.patients || []).map(normalizePatient);
         data.stores = storeData.store ? [{
           ...storeData.store,
           id: storeData.store.id || storeData.store._id,
@@ -77,7 +74,9 @@ export default function ApiDataLoader() {
       dispatch(replaceData(data));
     }
 
-    load().catch(() => {});
+    load().catch((error) => {
+      if (!cancelled) dispatch(dataRequestFailed(error?.response?.data?.message || 'Unable to load application data'));
+    });
     return () => { cancelled = true; };
   }, [dispatch, role]);
 

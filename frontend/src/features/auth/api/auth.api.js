@@ -2,7 +2,10 @@ import apiClient from '../../../shared/api/client.js';
 
 const authApi = apiClient;
 
+
+
 export async function register({
+  role = 'buyer',
   fullname,
   contact,
   email,
@@ -10,8 +13,21 @@ export async function register({
   dateOfBirth,
   gender,
   address,
+  storeName,
+  storeLicenseNumber,
+  storeContact,
+  storeEmail,
+  storeAddress,
 }) {
-  const response = await authApi.post('/auth/register/patient', {
+  const isSeller = role === 'seller';
+  const response = await authApi.post(`/auth/register/${isSeller ? 'store' : 'patient'}`, isSeller ? {
+    storeName,
+    storeLicenseNumber,
+    storeContact: storeContact || contact,
+    storeEmail: storeEmail || email,
+    password,
+    storeAddress: storeAddress || address,
+  } : {
     fullname,
     contact,
     email,

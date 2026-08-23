@@ -1,0 +1,4108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack - Digital Medication History Platform</title>
+    <style>
+/* ============================================================
+   MEDITRACK — "PULSE" THEME
+   Neo-brutalist, Gen-Z healthcare tech aesthetic.
+   Palette:  Ink #0B0B10 · Paper #FAF7EF · Lime #D6FF3F
+             Pink #FF3E9A · Cyan #3FE0FF · Alert #FF4D4D
+   Type:     Display -> 'Archivo Black' (chunky, uppercase, loud)
+             Body    -> 'Space Grotesk' (geometric, techy)
+             Data    -> 'JetBrains Mono' (IDs, receipts, money)
+   Signature: the ECG "pulse" rule — every page header is underscored
+   by a heartbeat line instead of a plain bar, tying the visual
+   identity back to the product's subject (medication + vitals).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --ink: #0B0B10;
+    --ink-soft: #17171f;
+    --paper: #FAF7EF;
+    --paper-dim: #F0ECE0;
+    --card: #FFFFFF;
+
+    --lime: #D6FF3F;
+    --lime-dim: #eaffa8;
+    --pink: #FF3E9A;
+    --pink-dim: #ffd4ea;
+    --cyan: #3FE0FF;
+    --cyan-dim: #cff7ff;
+    --danger: #FF4D4D;
+    --danger-dim: #ffd9d9;
+    --amber: #FFB020;
+    --amber-dim: #fff0cf;
+
+    --line: var(--ink);
+    --line-w: 3px;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 5px 5px 0 var(--ink);
+    --shadow-sm: 3px 3px 0 var(--ink);
+    --shadow-hover: 7px 7px 0 var(--ink);
+
+    --font-display: 'Archivo Black', 'Space Grotesk', sans-serif;
+    --font-body: 'Space Grotesk', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(214,255,63,0.18), transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(255,62,154,0.14), transparent 40%),
+        var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.01em; margin: 0; }
+
+::selection { background: var(--lime); color: var(--ink); }
+
+/* scrollbar flavor */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--paper-dim); }
+::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 20px; border: 2px solid var(--paper-dim); }
+
+/* ===================== LAYOUT PRIMITIVES ===================== */
+
+.screen { display: none; }
+.screen.active { display: block; animation: fadeUp .35s ease; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+}
+
+.section { display: none; }
+.section.active { display: block; animation: fadeUp .3s ease; }
+
+/* Page header + signature ECG pulse underline */
+.page-header {
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.page-header h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    text-transform: uppercase;
+    line-height: 1.02;
+}
+
+.page-header p {
+    margin: 8px 0 0;
+    font-size: 15px;
+    color: #55534d;
+    font-weight: 500;
+}
+
+.page-header::after {
+    content: "";
+    display: block;
+    margin-top: 16px;
+    height: 14px;
+    width: 220px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 14'%3E%3Cpolyline points='0,7 55,7 65,1 75,13 85,7 100,7 108,2 116,12 124,7 220,7' fill='none' stroke='%230B0B10' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+}
+
+.section-controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.section-controls input,
+.section-controls select {
+    max-width: 280px;
+}
+
+/* ===================== BUTTONS ===================== */
+
+.btn {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 22px;
+    cursor: pointer;
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.btn:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow); }
+.btn:active { transform: translate(0, 0); box-shadow: 0 0 0 var(--ink); }
+
+.btn-primary { background: var(--lime); }
+.btn-secondary { background: var(--cyan); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-large { padding: 16px 28px; font-size: 15px; width: 100%; border-radius: var(--radius); }
+.btn-small { padding: 7px 14px; font-size: 11.5px; box-shadow: 2px 2px 0 var(--ink); border-width: 2px; border-radius: 7px; }
+.btn-small:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); }
+
+.logout-btn { background: var(--ink); color: var(--paper); }
+
+/* ===================== FORMS ===================== */
+
+.form-group { margin-bottom: 18px; }
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 7px;
+    color: var(--ink);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    padding: 12px 14px;
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--ink);
+    outline-offset: 2px;
+}
+
+input::placeholder, textarea::placeholder { color: #a3a096; }
+
+input:focus, select:focus, textarea:focus {
+    outline: 3px solid var(--lime);
+    outline-offset: 0;
+}
+
+input[readonly] { background: var(--paper-dim); color: #6b6a63; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 20px;
+}
+
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+.role-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.role-radio {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: var(--card);
+    font-weight: 600;
+    font-size: 13.5px;
+}
+
+.role-radio:has(input:checked) { background: var(--lime); }
+
+.payment-status { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.payment-status label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; }
+
+/* ===================== PUBLIC MARKETING SITE ===================== */
+
+#publicScreen { overflow-x: hidden; }
+
+/* --- public navbar --- */
+.public-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 32px;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    border-bottom: var(--line-w) solid var(--ink);
+}
+
+.public-nav-brand {
+    font-family: var(--font-display);
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.public-nav-brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); border: 2px solid var(--ink); display: inline-block; }
+
+.public-nav-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 9px;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.public-nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.public-nav-link {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: transparent;
+    border: 2px solid transparent;
+    color: var(--ink);
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+.public-nav-link:hover { border-color: var(--ink); }
+.public-nav-link.active { background: var(--ink); color: var(--lime); }
+
+.public-nav-auth { display: flex; gap: 8px; margin-left: 10px; }
+
+/* --- hero --- */
+.hero {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 60px 32px 70px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 48px;
+    align-items: center;
+}
+
+.eyebrow {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--lime);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-bottom: 18px;
+}
+
+.hero h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    text-transform: uppercase;
+    line-height: 1.05;
+}
+
+.hero-sub {
+    margin: 20px 0 26px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #43413a;
+    max-width: 540px;
+}
+
+.hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+.hero-cta.center { justify-content: center; }
+
+.trust-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+.chip {
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 7px 13px;
+}
+
+.hero-visual { position: relative; }
+
+.mockup-card {
+    background: var(--card);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    transform: rotate(-2deg);
+}
+.mockup-card-head {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-display); font-size: 13px; text-transform: uppercase;
+    padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px dashed var(--ink);
+}
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); border: 2px solid var(--ink); }
+.mockup-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; font-family: var(--font-mono); }
+.mockup-row.muted { color: #8b897f; font-size: 11px; padding-top: 0; padding-bottom: 10px; }
+
+.mockup-alert {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--amber-dim);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
+    max-width: 300px;
+    margin: -24px 0 0 auto;
+    transform: rotate(2deg);
+    position: relative;
+    z-index: 2;
+}
+.mockup-alert strong { font-family: var(--font-display); font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+.mockup-alert p { margin: 0; font-size: 12px; }
+
+/* --- split section (patients vs stores) --- */
+.split-section, .why-section {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 32px 70px;
+}
+
+.split-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.split-card {
+    background: var(--card);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 30px 28px;
+}
+.split-card.split-lime { background: var(--lime-dim); }
+.split-card.split-pink { background: var(--pink-dim); }
+
+.split-icon {
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    margin-bottom: 16px;
+}
+
+.split-card h3 { font-size: 20px; text-transform: uppercase; margin-bottom: 14px; }
+.split-card ul { margin: 0 0 22px; padding-left: 20px; }
+.split-card li { font-size: 14px; margin-bottom: 8px; line-height: 1.4; }
+
+/* --- why section --- */
+.why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+.why-card {
+    background: var(--card);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    padding: 24px 22px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.why-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow); }
+.why-icon { font-size: 30px; margin-bottom: 12px; }
+.why-card h3 { font-size: 15px; text-transform: uppercase; margin-bottom: 8px; }
+.why-card p { font-size: 13.5px; line-height: 1.5; color: #43413a; margin: 0; }
+
+/* --- cta banner --- */
+.cta-banner {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 64px 32px;
+}
+.cta-banner h2 { font-size: clamp(24px, 4vw, 34px); color: var(--lime); text-transform: uppercase; }
+.cta-banner p { font-size: 15px; color: #cfcdc3; margin: 12px 0 26px; }
+
+/* --- features page --- */
+.subsection-title {
+    font-size: 20px;
+    text-transform: uppercase;
+    margin: 40px 0 18px;
+    display: inline-block;
+    padding-bottom: 6px;
+    border-bottom: 4px solid var(--ink);
+}
+.subsection-title.lime { border-bottom-color: var(--lime); }
+.subsection-title.pink { border-bottom-color: var(--pink); }
+.subsection-title:first-of-type { margin-top: 10px; }
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px;
+    margin-bottom: 10px;
+}
+.feature-card {
+    background: var(--card);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.feature-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow); }
+.feature-icon { font-size: 26px; margin-bottom: 10px; }
+.feature-card h3 { font-size: 14.5px; text-transform: uppercase; margin-bottom: 8px; }
+.feature-card p { font-size: 13px; line-height: 1.5; color: #43413a; margin: 0; }
+
+.ai-spotlight {
+    margin-top: 50px;
+    background: var(--cyan-dim);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    padding: 30px 28px;
+    box-shadow: var(--shadow);
+}
+.ai-spotlight h2 { font-size: 19px; text-transform: uppercase; margin-bottom: 20px; }
+.ai-spotlight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.ai-spotlight-grid strong { font-family: var(--font-display); font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 6px; }
+.ai-spotlight-grid p { margin: 0; font-size: 13px; line-height: 1.5; }
+
+/* --- how it works page --- */
+.journey-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 10px;
+}
+.step-item { display: flex; gap: 16px; margin-bottom: 26px; }
+.step-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: var(--line-w) solid var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 16px;
+}
+.step-num.lime { background: var(--lime); }
+.step-num.pink { background: var(--pink); color: #fff; }
+.step-item h3 { font-size: 14.5px; text-transform: uppercase; margin-bottom: 5px; }
+.step-item p { margin: 0; font-size: 13.5px; line-height: 1.5; color: #43413a; }
+
+.note-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--amber-dim);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-top: 20px;
+}
+.note-card span { font-size: 24px; }
+.note-card p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+
+/* --- about / contact page --- */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 36px;
+    align-items: start;
+    margin-top: 10px;
+}
+.about-copy p { font-size: 14.5px; line-height: 1.65; color: #43413a; margin: 0 0 12px; }
+.trust-list { margin: 0; padding-left: 20px; }
+.trust-list li { font-size: 14px; line-height: 1.55; margin-bottom: 10px; }
+
+.contact-form {
+    background: var(--card);
+    border: var(--line-w) solid var(--ink);
+    border-radius: var(--radius);
+    padding: 26px;
+    box-shadow: var(--shadow);
+}
+.contact-form h2 { font-size: 17px; text-transform: uppercase; margin-bottom: 18px; }
+.form-note { margin-top: 10px; text-align: center; }
+
+/* --- footer --- */
+.public-footer {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 34px 32px 24px;
+}
+.footer-top {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding-bottom: 20px;
+    border-bottom: 2px dashed #33323d;
+}
+.public-footer .public-nav-brand { color: var(--paper); }
+.footer-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.footer-links .public-nav-link { color: #cfcdc3; }
+.footer-links .public-nav-link:hover { border-color: #33323d; color: var(--paper); }
+.footer-links .public-nav-link.active { background: var(--lime); color: var(--ink); }
+.footer-fine {
+    max-width: 1240px;
+    margin: 16px auto 0;
+    font-size: 12px;
+    color: #8b897f;
+    text-align: center;
+}
+
+/* --- back-to-site link on auth card --- */
+.back-to-site {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b6a63;
+    cursor: pointer;
+    padding: 0 0 16px;
+}
+.back-to-site:hover { color: var(--ink); }
+
+/* ===================== AUTH SCREEN ===================== */
+
+#authScreen {
+    min-height: 100vh;
+    padding: 40px 24px;
+}
+
+#authScreen.active {
+    display: flex;
+    justify-content: center;
+    align-items: safe center;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 440px;
+    margin: auto;
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: 20px;
+    box-shadow: 9px 9px 0 var(--ink);
+    padding: 40px 34px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-container::before {
+    content: "+";
+    position: absolute;
+    top: -30px;
+    right: -10px;
+    font-family: var(--font-display);
+    font-size: 180px;
+    color: var(--lime-dim);
+    z-index: 0;
+    line-height: 1;
+}
+
+.auth-header { position: relative; z-index: 1; margin-bottom: 26px; text-align: center; }
+
+.auth-header h1 {
+    font-size: 40px;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--lime);
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 8px;
+    transform: rotate(-2deg);
+}
+
+.auth-header p {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #57554d;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.auth-tabs {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.auth-tab-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: var(--card);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    color: var(--ink);
+    border-right: var(--line-w) solid var(--line);
+}
+.auth-tab-btn:last-child { border-right: none; }
+.auth-tab-btn.active { background: var(--ink); color: var(--lime); }
+
+.auth-tab { display: none; position: relative; z-index: 1; }
+.auth-tab.active { display: block; }
+
+.demo-credentials {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: var(--cyan-dim);
+    border: 2px dashed var(--ink);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+.demo-credentials p { margin: 2px 0; }
+
+/* ===================== NAVBAR ===================== */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 28px;
+    background: var(--ink);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: var(--line-w) solid var(--lime);
+}
+
+#sellerScreen .navbar { border-bottom-color: var(--pink); }
+
+.navbar-brand {
+    font-family: var(--font-display);
+    font-size: 20px;
+    text-transform: uppercase;
+    color: var(--paper);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.navbar-brand::before { content: "●"; color: var(--lime); margin-right: 8px; }
+#sellerScreen .navbar-brand::before { color: var(--pink); }
+
+.navbar-menu {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.navbar-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    background: var(--lime);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 9px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+#sellerScreen .navbar-toggle { background: var(--pink); }
+
+.nav-btn {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: transparent;
+    color: #cfcdc3;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.nav-btn:hover { color: var(--paper); border-color: #33323d; }
+
+.nav-btn.active {
+    background: var(--lime);
+    color: var(--ink);
+    border-color: var(--lime);
+}
+#sellerScreen .nav-btn.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+
+.nav-btn.logout-btn {
+    background: transparent;
+    color: var(--danger);
+    border-color: var(--danger);
+}
+.nav-btn.logout-btn:hover { background: var(--danger); color: #fff; }
+
+/* ===================== INFO / STAT CARDS ===================== */
+
+.info-cards, .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 18px;
+    margin-bottom: 34px;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.info-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow); }
+
+.card-icon {
+    font-size: 26px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lime);
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+#sellerScreen .card-icon { background: var(--pink); }
+
+.card-content h3 {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b6a63;
+}
+.card-value {
+    font-family: var(--font-mono);
+    font-size: 19px;
+    font-weight: 700;
+    margin: 4px 0 0;
+    word-break: break-word;
+}
+
+.stat-card {
+    background: var(--ink);
+    color: var(--paper);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::after {
+    content: "";
+    position: absolute;
+    right: -18px; top: -18px;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--lime);
+    opacity: .18;
+}
+#sellerScreen .stat-card::after { background: var(--pink); }
+
+.stat-number {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--lime);
+}
+#sellerScreen .stat-number { color: var(--pink); }
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #b9b7ad;
+    margin-top: 6px;
+}
+
+/* ===================== DASHBOARD PANELS / LISTS ===================== */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+.dashboard-panel, .profile-panel, .share-control, .form-panel {
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px;
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-panel h2, .profile-info h2, .share-control h2, .form-panel h2 {
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px dashed var(--ink);
+}
+
+.medicines-list, .sales-list, .alerts-list { display: flex; flex-direction: column; gap: 10px; }
+
+.medicine-item, .sale-item, .sales-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+}
+
+.medicine-name, .sales-item-name, .timeline-medicine-name {
+    font-weight: 700;
+    font-size: 14.5px;
+}
+.medicine-meta, .sales-item-details, .sale-item-details {
+    font-size: 12px;
+    color: #6b6a63;
+    font-family: var(--font-mono);
+    margin-top: 3px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 34px 18px;
+    color: #8b897f;
+    font-weight: 600;
+    font-size: 13.5px;
+    border: 2px dashed #c9c6b8;
+    border-radius: var(--radius-sm);
+    background: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(11,11,16,0.02) 10px, rgba(11,11,16,0.02) 20px);
+}
+
+/* ===================== ALERTS (AI safety) ===================== */
+
+.alerts-container, .alerts-list { display: flex; flex-direction: column; gap: 14px; }
+
+.alert {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    background: var(--card);
+}
+
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+
+.alert-content { font-size: 13.5px; line-height: 1.55; }
+.alert-content h3, .alert-content strong { font-family: var(--font-display); font-size: 13.5px; text-transform: uppercase; margin: 0 0 6px; }
+.alert-content p { margin: 0 0 6px; }
+.alert-content p:last-child { margin-bottom: 0; }
+
+.alert-warning { background: var(--amber-dim); }
+.alert-danger { background: var(--danger-dim); }
+.alert-info { background: var(--cyan-dim); }
+
+/* ===================== TIMELINE (medication history) ===================== */
+
+.history-timeline { display: flex; flex-direction: column; gap: 18px; position: relative; padding-left: 26px; }
+.history-timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px; top: 6px; bottom: 6px;
+    width: 3px;
+    background: repeating-linear-gradient(var(--ink) 0 6px, transparent 6px 11px);
+}
+
+.timeline-item {
+    position: relative;
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+}
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -26px; top: 22px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--lime);
+    border: 3px solid var(--ink);
+}
+
+.timeline-date {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6b6a63;
+    text-transform: uppercase;
+}
+
+.timeline-content { margin-top: 8px; }
+
+.timeline-details { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.timeline-detail { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed #ddd9c9; padding-bottom: 6px; }
+.timeline-detail-label { color: #6b6a63; font-weight: 600; }
+.timeline-detail-value { font-family: var(--font-mono); font-weight: 700; }
+
+.timeline-action { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ===================== INVENTORY / SALES / PATIENTS TABLES ===================== */
+
+.inventory-table { display: flex; flex-direction: column; gap: 2px; border-radius: var(--radius); overflow: hidden; border: var(--line-w) solid var(--line); box-shadow: var(--shadow-sm); }
+
+.inventory-header, .inventory-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 0.8fr 0.8fr 1fr 1.3fr;
+    gap: 10px;
+    padding: 12px 16px;
+    align-items: center;
+    font-size: 12.5px;
+}
+
+.inventory-header {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 11px;
+}
+
+.inventory-row {
+    background: var(--card);
+    border-top: 1px solid #eee9d8;
+    font-family: var(--font-mono);
+}
+.inventory-row:hover { background: var(--lime-dim); }
+
+.inventory-actions { display: flex; gap: 8px; grid-column: -1 / -1; }
+
+.action-btn {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--card);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 7px;
+    padding: 6px 12px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+    transition: transform .12s ease, box-shadow .12s ease;
+    white-space: nowrap;
+}
+.action-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); background: var(--lime); }
+.action-btn:last-of-type:hover { background: var(--danger); color: #fff; }
+
+.patients-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; }
+
+.patient-item {
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+}
+.patient-item-name { font-family: var(--font-display); font-size: 15px; margin-bottom: 8px; text-transform: uppercase; }
+.patient-item-detail { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+.patient-item-label { color: #6b6a63; font-weight: 600; }
+.patient-item-value { font-family: var(--font-mono); font-weight: 700; }
+
+.patient-card {
+    margin-top: 16px;
+    background: var(--lime-dim);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+}
+.patient-card h3 { text-transform: uppercase; font-size: 13px; margin-bottom: 10px; }
+
+.sales-history { display: flex; flex-direction: column; gap: 12px; }
+.sales-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-sm);
+}
+.sales-history-info { flex: 1; min-width: 160px; }
+.sales-history-title { font-weight: 700; font-size: 14.5px; }
+.sales-history-meta { font-size: 12px; color: #6b6a63; font-family: var(--font-mono); }
+.sales-history-amount { font-family: var(--font-mono); font-weight: 700; font-size: 17px; background: var(--lime); padding: 4px 10px; border: 2px solid var(--ink); border-radius: 7px; }
+
+.sales-item-info { flex: 1; min-width: 120px; }
+.sales-item-amount { font-family: var(--font-mono); font-weight: 700; font-size: 15px; background: var(--lime); padding: 3px 9px; border: 2px solid var(--ink); border-radius: 7px; white-space: nowrap; }
+#sellerScreen .sales-item-amount { background: var(--pink); color: #fff; }
+
+/* ===================== SALE FORM (new sale flow) ===================== */
+
+.sale-form-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 20px; align-items: start; }
+.search-patient { display: flex; flex-direction: column; gap: 10px; }
+.search-patient .btn { align-self: flex-start; }
+
+.sale-items-list { display: flex; flex-direction: column; gap: 10px; }
+.sale-item { align-items: center; gap: 18px 22px; }
+.sale-item-details { display: flex; flex-direction: column; gap: 2px; }
+.sale-item-label { font-size: 10px; text-transform: uppercase; color: #6b6a63; font-weight: 700; letter-spacing: 0.04em; }
+
+.sale-summary table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.sale-summary td { padding: 10px 4px; border-bottom: 1px dashed #ddd9c9; font-size: 14px; }
+.sale-summary .amount { font-family: var(--font-mono); font-weight: 700; text-align: right; }
+.sale-summary .summary-total td { font-family: var(--font-display); font-size: 17px; border-bottom: none; border-top: 2px solid var(--ink); padding-top: 14px; }
+
+/* ===================== SHARE / ACCESS LOGS ===================== */
+
+.share-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 20px; align-items: start; }
+
+.share-code-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ink);
+    color: var(--lime);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin: 10px 0;
+}
+.share-code-box code { font-family: var(--font-mono); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; flex: 1; }
+
+.share-codes-list, .access-logs { display: flex; flex-direction: column; gap: 10px; }
+.share-code-item, .access-log-item {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    align-items: center;
+}
+.access-log-item { display: block; }
+
+.text-secondary { color: #6b6a63; font-size: 12.5px; }
+
+/* ===================== REPORTS ===================== */
+
+.prescriptions-container { display: flex; flex-direction: column; gap: 10px; }
+
+.receipt { font-size: 14px; }
+
+.reports-container { display: flex; flex-direction: column; gap: 18px; }
+.reports-list { display: flex; flex-direction: column; gap: 12px; }
+
+.report-item {
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+}
+.report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.report-id { font-family: var(--font-mono); font-weight: 700; font-size: 13.5px; }
+
+.report-status {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--ink);
+}
+.status-pending { background: var(--amber-dim); }
+.status-in-progress, .status-investigating { background: var(--cyan-dim); }
+.status-resolved { background: var(--lime-dim); }
+.status-rejected, .status-closed { background: var(--danger-dim); }
+
+.report-details p { margin: 4px 0; font-size: 13px; }
+
+/* ===================== PROFILE ===================== */
+
+.info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd9c9; font-size: 14px; }
+.info-row span:first-child { color: #6b6a63; font-weight: 600; }
+.info-row span:last-child { font-family: var(--font-mono); font-weight: 700; }
+
+/* ===================== MODALS ===================== */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(11,11,16,0.6);
+    backdrop-filter: blur(3px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal.show { display: flex; }
+
+.modal-content {
+    background: var(--card);
+    border: var(--line-w) solid var(--line);
+    border-radius: 18px;
+    box-shadow: 9px 9px 0 var(--ink);
+    padding: 32px;
+    max-width: 560px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-content h2 { text-transform: uppercase; font-size: 20px; margin-bottom: 20px; }
+
+.close {
+    position: absolute;
+    top: 16px; right: 18px;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: var(--paper);
+}
+.close:hover { background: var(--danger); color: #fff; }
+
+/* ===================== RECEIPT ===================== */
+
+.receipt-content { max-width: 480px; }
+.receipt-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 3px dashed var(--ink); }
+.receipt-header h1 { font-size: 22px; text-transform: uppercase; }
+.receipt-header p { font-family: var(--font-mono); font-size: 12px; color: #6b6a63; margin-top: 6px; }
+
+.receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.receipt-table td { padding: 6px 2px; font-size: 13px; }
+.receipt-table td:last-child { text-align: right; font-family: var(--font-mono); }
+
+.receipt-items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.receipt-item {
+    display: grid;
+    grid-template-columns: 2fr 0.6fr 1fr 1fr;
+    gap: 6px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    padding: 8px 4px;
+    background: var(--paper);
+    border-radius: 6px;
+}
+
+.receipt-totals .receipt-total td { font-family: var(--font-display); font-size: 15px; border-top: 2px solid var(--ink); padding-top: 10px; }
+
+/* ===================== TOAST ===================== */
+
+.toast {
+    position: fixed;
+    bottom: 26px;
+    right: 26px;
+    z-index: 300;
+    background: var(--ink);
+    color: var(--paper);
+    border: var(--line-w) solid var(--lime);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 18px;
+    max-width: 320px;
+    animation: toastIn .25s ease;
+}
+@keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.toast-content strong { color: var(--lime); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 4px; }
+.toast-content p { margin: 0; font-size: 13px; }
+
+/* ===================== MEDICINE FORM ===================== */
+
+.medicine-form { background: var(--card); border: var(--line-w) solid var(--line); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow-sm); max-width: 800px; }
+
+/* ===================== MISC ===================== */
+
+/* ============================================================
+   RESPONSIVE — tablet, mobile, small phones
+   ============================================================ */
+
+/* ---- Tablet & below: collapse nav into a hamburger menu ---- */
+@media (max-width: 900px) {
+    .navbar { flex-wrap: wrap; padding: 12px 18px; gap: 10px; }
+    .navbar-toggle { display: flex; }
+
+    .public-navbar { flex-wrap: wrap; padding: 14px 18px; }
+    .public-nav-toggle { display: flex; }
+    .public-nav-menu {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        margin-top: 4px;
+        padding-top: 14px;
+        border-top: 2px dashed #ddd9c9;
+    }
+    .public-nav-menu.nav-open { display: flex; animation: fadeUp .2s ease; }
+    .public-nav-link { text-align: left; width: 100%; padding: 12px 14px; }
+    .public-nav-auth { margin-left: 0; margin-top: 8px; }
+
+    .hero { grid-template-columns: 1fr; padding: 40px 22px 50px; }
+    .hero-visual { order: -1; }
+    .mockup-alert { margin: -20px 0 0 10%; max-width: 260px; }
+
+    .split-cards, .why-grid, .journey-grid, .ai-spotlight-grid, .about-grid { grid-template-columns: 1fr; }
+    .journey-grid { gap: 10px; }
+    .footer-top { flex-direction: column; align-items: flex-start; }
+
+
+    .navbar-menu {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        margin-top: 4px;
+        padding-top: 14px;
+        border-top: 2px dashed #33323d;
+    }
+    .navbar-menu.nav-open { display: flex; animation: fadeUp .2s ease; }
+
+    .nav-btn {
+        text-align: left;
+        border-radius: 8px;
+        padding: 13px 14px;
+        font-size: 13px;
+        width: 100%;
+    }
+    .nav-btn.logout-btn { margin-top: 6px; }
+
+    .navbar-brand { font-size: 17px; }
+
+    .inventory-header { display: none; }
+    .inventory-row { grid-template-columns: 1fr; gap: 2px; font-family: var(--font-mono); }
+    .inventory-row > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 7px 0;
+        border-bottom: 1px dashed #eee9d8;
+        font-size: 13px;
+    }
+    .inventory-row > div:last-child,
+    .inventory-row > div.inventory-actions { border-bottom: none; }
+    .inventory-row > div:nth-child(1)::before { content: "Medicine"; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-row > div:nth-child(2)::before { content: "Category"; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-row > div:nth-child(3)::before { content: "Price"; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-row > div:nth-child(4)::before { content: "Stock"; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-row > div:nth-child(5)::before { content: "Expiry"; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-row > div:nth-child(6)::before { content: "Rx Req."; font-weight: 700; color: #8b897f; font-family: var(--font-body); text-transform: uppercase; font-size: 10.5px; }
+    .inventory-actions { justify-content: flex-end; padding-top: 10px !important; }
+}
+
+/* ---- Small/medium phones ---- */
+@media (max-width: 640px) {
+    .container { padding: 20px 14px 60px; }
+    #authScreen { padding: 24px 14px; }
+
+    .page-header h1 { font-size: 26px; }
+    .page-header::after { width: 160px; height: 12px; }
+
+    .info-cards, .dashboard-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .info-card { padding: 13px; gap: 10px; }
+    .card-icon { width: 42px; height: 42px; font-size: 19px; border-radius: 10px; }
+    .card-content h3 { font-size: 10px; }
+    .card-value { font-size: 15px; }
+    .stat-card { padding: 16px 14px; }
+    .stat-number { font-size: 24px; }
+    .stat-label { font-size: 10px; }
+
+    .dashboard-grid, .sale-form-container, .share-panel { grid-template-columns: 1fr; }
+    .dashboard-panel, .profile-panel, .share-control, .form-panel, .medicine-form { padding: 16px; }
+
+    .auth-container { padding: 26px 20px; border-radius: 16px; }
+    .auth-container::before { font-size: 110px; top: -18px; right: -6px; }
+    .auth-header h1 { font-size: 30px; }
+    .auth-tab-btn { font-size: 11.5px; padding: 10px 6px; }
+    .role-selector { flex-direction: column; }
+
+    .form-grid { grid-template-columns: 1fr; }
+
+    .modal-content { padding: 22px 18px; border-radius: 14px; max-height: 92vh; }
+    .modal-content h2 { font-size: 17px; padding-right: 34px; }
+    .close { top: 12px; right: 12px; width: 30px; height: 30px; font-size: 18px; }
+
+    .receipt-item {
+        grid-template-columns: 1.6fr 0.5fr 0.9fr 0.9fr;
+        font-size: 11px;
+        padding: 7px 4px;
+    }
+    .receipt-header h1 { font-size: 19px; }
+
+    .sale-item { flex-direction: column; align-items: stretch; gap: 8px; }
+    .sale-item > .action-btn { align-self: flex-end; }
+
+    .sales-history-item, .medicine-item, .sales-item { flex-direction: column; align-items: stretch; }
+    .sales-history-amount, .sales-item-amount { align-self: flex-start; }
+
+    .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+
+    .btn-large { padding: 14px 22px; font-size: 14px; }
+
+    .hero { padding: 32px 16px 40px; }
+    .hero h1 { font-size: 30px; }
+    .hero-sub { font-size: 14.5px; }
+    .mockup-card { padding: 16px 18px; }
+    .mockup-alert { margin-left: 0; max-width: none; }
+    .split-section, .why-section { padding: 10px 16px 50px; }
+    .split-card { padding: 22px 20px; }
+    .cta-banner { padding: 44px 20px; }
+    .feature-grid { grid-template-columns: 1fr 1fr; }
+    .ai-spotlight { padding: 22px 18px; }
+    .contact-form { padding: 20px; }
+}
+
+/* ---- Very small phones ---- */
+@media (max-width: 400px) {
+    .info-cards, .dashboard-stats { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .payment-status { flex-direction: column; gap: 8px; }
+    .receipt-item { grid-template-columns: 1fr; gap: 2px; }
+    .receipt-item > div:nth-child(2)::before { content: "Qty: "; }
+    .receipt-item > div:nth-child(3)::before { content: "Rate: "; }
+    .receipt-item > div:nth-child(4)::before { content: "Amount: "; }
+    .auth-header h1 { font-size: 26px; }
+}
+
+/* ---- Accessibility / motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+</style>
+</head>
+<body>
+    <!-- ============================================================
+         PUBLIC MARKETING SITE (pre-login)
+    ============================================================ -->
+    <div id="publicScreen" class="screen active">
+
+        <nav class="public-navbar">
+            <div class="public-nav-brand">
+                <span class="dot"></span>MEDITRACK
+            </div>
+            <button class="public-nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+            <div class="public-nav-menu">
+                <button class="public-nav-link active" data-page="home">Home</button>
+                <button class="public-nav-link" data-page="features">Features</button>
+                <button class="public-nav-link" data-page="how">How It Works</button>
+                <button class="public-nav-link" data-page="about">About / Contact</button>
+                <div class="public-nav-auth">
+                    <button class="btn btn-small" data-auth="login">Login</button>
+                    <button class="btn btn-small btn-primary" data-auth="register">Get Started</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ============ PAGE 1 : HOME ============ -->
+        <div id="page-home" class="public-page active">
+
+            <header class="hero">
+                <div class="hero-content">
+                    <span class="eyebrow">Digital Health &middot; Medication Safety</span>
+                    <h1>YOUR MEDICINE HISTORY,<br>FINALLY IN ONE PLACE.</h1>
+                    <p class="hero-sub">MediTrack connects patients and medical stores so every purchase is
+                        recorded automatically. No more lost bills, no more forgetting what you took last month
+                        &mdash; and an AI safety net quietly watching for patterns worth a doctor's attention.</p>
+                    <div class="hero-cta">
+                        <button class="btn btn-primary btn-large" data-auth="register">Get Started Free</button>
+                        <button class="btn btn-large" data-page="how">See How It Works</button>
+                    </div>
+                    <div class="trust-chips">
+                        <span class="chip">🤖 AI Monitored</span>
+                        <span class="chip">🔒 Privacy-First Sharing</span>
+                        <span class="chip">📵 Works Without a Smartphone</span>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="mockup-card">
+                        <div class="mockup-card-head">
+                            <span class="mockup-dot"></span> Medication History
+                        </div>
+                        <div class="mockup-row">
+                            <strong>Amlodipine</strong>
+                            <span>30 tabs</span>
+                        </div>
+                        <div class="mockup-row muted">RX10003 &middot; 10 days ago</div>
+                        <div class="mockup-row">
+                            <strong>Metformin</strong>
+                            <span>60 tabs</span>
+                        </div>
+                        <div class="mockup-row muted">RX10002 &middot; 30 days ago</div>
+                    </div>
+                    <div class="mockup-alert">
+                        <span>⚠️</span>
+                        <div>
+                            <strong>Long-term usage detected</strong>
+                            <p>Consult your doctor for a review.</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="split-section">
+                <div class="page-header">
+                    <h2>BUILT FOR BOTH SIDES OF THE COUNTER</h2>
+                    <p>One platform, two experiences &mdash; kept perfectly in sync.</p>
+                </div>
+                <div class="split-cards">
+                    <div class="split-card split-lime">
+                        <div class="split-icon">🧑‍⚕️</div>
+                        <h3>For Patients</h3>
+                        <ul>
+                            <li>Automatic digital medication timeline</li>
+                            <li>Printable receipts for every purchase</li>
+                            <li>AI safety alerts on your patterns</li>
+                            <li>Share history with a doctor via a code</li>
+                        </ul>
+                        <button class="btn btn-primary" data-auth="register">Join as a Patient</button>
+                    </div>
+                    <div class="split-card split-pink">
+                        <div class="split-icon">🏪</div>
+                        <h3>For Medical Stores</h3>
+                        <ul>
+                            <li>Full inventory &amp; stock tracking</li>
+                            <li>Fast checkout with instant receipts</li>
+                            <li>Patient search by ID or mobile</li>
+                            <li>Low-stock &amp; expiry alerts</li>
+                        </ul>
+                        <button class="btn btn-secondary" data-auth="register">Register a Store</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="why-section">
+                <div class="page-header">
+                    <h2>WHY IT MATTERS</h2>
+                </div>
+                <div class="why-grid">
+                    <div class="why-card">
+                        <div class="why-icon">🩺</div>
+                        <h3>Continuity of Care</h3>
+                        <p>Show any doctor or pharmacy your full history instantly &mdash; no old bills, no guessing.</p>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon">🛡️</div>
+                        <h3>An AI Safety Net</h3>
+                        <p>Patterns like long-term or repeated usage get flagged for a professional to review &mdash; never diagnosed, never prescribed.</p>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon">📶</div>
+                        <h3>No Phone? No Problem</h3>
+                        <p>Stores can create a record from just a mobile number, so nobody's history is lost.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cta-banner">
+                <h2>READY TO SEE IT IN ACTION?</h2>
+                <p>Try it instantly with the demo accounts &mdash; no setup required.</p>
+                <div class="hero-cta center">
+                    <button class="btn btn-primary btn-large" data-auth="register">Get Started Free</button>
+                    <button class="btn btn-large" data-auth="login">I Already Have an Account</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ PAGE 2 : FEATURES ============ -->
+        <div id="page-features" class="public-page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>EVERYTHING YOU NEED</h1>
+                    <p>A complete toolkit for patients and the stores that serve them.</p>
+                </div>
+
+                <h2 class="subsection-title lime">For Patients</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🕐</div>
+                        <h3>Medication Timeline</h3>
+                        <p>Every purchase lands automatically on a chronological history &mdash; no manual entry.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🧾</div>
+                        <h3>Digital Receipts</h3>
+                        <p>Printable, detailed receipts for every transaction, always a tap away.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI Safety Alerts</h3>
+                        <p>Pattern detection flags repeated or long-term usage worth a professional look.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔗</div>
+                        <h3>Secure Share Codes</h3>
+                        <p>Generate a temporary, revocable code so a new doctor can view your history.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📋</div>
+                        <h3>Issue Reporting</h3>
+                        <p>Flag a problem with any purchase and track its status until resolved.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👤</div>
+                        <h3>One Patient ID</h3>
+                        <p>A single ID follows you across every connected store, for life.</p>
+                    </div>
+                </div>
+
+                <h2 class="subsection-title pink">For Medical Stores</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3>Inventory Management</h3>
+                        <p>Full CRUD on stock, pricing, discounts, and prescription requirements.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast Checkout</h3>
+                        <p>Search a patient, add items, and complete a sale in seconds with auto-calculated totals.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Instant Patient Search</h3>
+                        <p>Find any patient by ID or mobile number, or create a new record on the spot.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⏳</div>
+                        <h3>Expiry &amp; Low-Stock Alerts</h3>
+                        <p>Never get caught out by expiring stock or an empty shelf again.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Sales History</h3>
+                        <p>A running log of every transaction, ready for review anytime.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💳</div>
+                        <h3>Payment Tracking</h3>
+                        <p>Mark sales as paid or due, and keep a clean ledger without spreadsheets.</p>
+                    </div>
+                </div>
+
+                <div class="ai-spotlight">
+                    <h2>🛡️ THE AI, HELD TO A STRICT SAFETY STANDARD</h2>
+                    <div class="ai-spotlight-grid">
+                        <div><strong>Never diagnoses.</strong><p>It won't ever tell you what condition you have.</p></div>
+                        <div><strong>Never prescribes.</strong><p>It won't suggest a medicine to take instead.</p></div>
+                        <div><strong>Always defers to professionals.</strong><p>Every alert ends with a nudge to consult a doctor.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PAGE 3 : HOW IT WORKS ============ -->
+        <div id="page-how" class="public-page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>HOW IT WORKS</h1>
+                    <p>Two simple journeys that stay perfectly in sync.</p>
+                </div>
+
+                <div class="journey-grid">
+                    <div class="journey-track">
+                        <h2 class="subsection-title lime">Patient Journey</h2>
+                        <div class="step-item">
+                            <div class="step-num lime">1</div>
+                            <div><h3>Walk into any connected store</h3><p>Just bring your Patient ID or registered mobile number.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num lime">2</div>
+                            <div><h3>Purchase gets recorded instantly</h3><p>The moment checkout completes, it's saved to your digital timeline.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num lime">3</div>
+                            <div><h3>AI quietly watches for patterns</h3><p>Long-term or repeated usage generates a safety alert on your dashboard.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num lime">4</div>
+                            <div><h3>Share it whenever you need to</h3><p>Generate a 7-day access code for a new doctor or store in one tap.</p></div>
+                        </div>
+                    </div>
+
+                    <div class="journey-track">
+                        <h2 class="subsection-title pink">Pharmacy Journey</h2>
+                        <div class="step-item">
+                            <div class="step-num pink">1</div>
+                            <div><h3>Search or create the patient</h3><p>Look up by ID/mobile, or create a record in seconds if they're new.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num pink">2</div>
+                            <div><h3>Build the cart</h3><p>Add medicines, apply discounts, and the total calculates automatically.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num pink">3</div>
+                            <div><h3>Complete the sale</h3><p>Stock deducts automatically and a receipt generates instantly.</p></div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num pink">4</div>
+                            <div><h3>It's on record, everywhere</h3><p>The patient can now see it and share it with any future provider.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-card">
+                    <span>📵</span>
+                    <p><strong>No smartphone? No problem.</strong> The store can create a record just from a mobile number. When the patient gets a phone later, they register with the same number and their entire history is already waiting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PAGE 4 : ABOUT / CONTACT ============ -->
+        <div id="page-about" class="public-page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>ABOUT MEDITRACK</h1>
+                    <p>Why we built this, and how we think about your data.</p>
+                </div>
+
+                <div class="about-grid">
+                    <div class="about-copy">
+                        <h2 class="subsection-title lime">The Problem</h2>
+                        <p>Patients lose track of what they've taken and when. Old bills get thrown out, memory fades,
+                            and every new doctor starts from zero. MediTrack turns that scattered paper trail into one
+                            digital record that follows the patient, not the pharmacy.</p>
+
+                        <h2 class="subsection-title pink">Privacy &amp; Trust</h2>
+                        <ul class="trust-list">
+                            <li>Your Patient ID alone never grants access to your history.</li>
+                            <li>Share codes are temporary and expire automatically after 7 days.</li>
+                            <li>Every access is logged, so you can see who viewed your data and when.</li>
+                            <li>Codes can be revoked by you at any time, instantly.</li>
+                        </ul>
+                    </div>
+
+                    <form id="contactForm" class="contact-form">
+                        <h2>Get in Touch</h2>
+                        <div class="form-group">
+                            <label for="contactName">Name</label>
+                            <input type="text" id="contactName" placeholder="Your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactEmail">Email</label>
+                            <input type="email" id="contactEmail" placeholder="you@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactMessage">Message</label>
+                            <textarea id="contactMessage" rows="4" placeholder="How can we help?" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">Send Message</button>
+                        <p class="text-secondary form-note">Demo form &mdash; no message is actually sent.</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer class="public-footer">
+            <div class="footer-top">
+                <div class="public-nav-brand"><span class="dot"></span>MEDITRACK</div>
+                <div class="footer-links">
+                    <button class="public-nav-link" data-page="home">Home</button>
+                    <button class="public-nav-link" data-page="features">Features</button>
+                    <button class="public-nav-link" data-page="how">How It Works</button>
+                    <button class="public-nav-link" data-page="about">About / Contact</button>
+                </div>
+                <div class="hero-cta">
+                    <button class="btn btn-small" data-auth="login">Login</button>
+                    <button class="btn btn-small btn-primary" data-auth="register">Get Started</button>
+                </div>
+            </div>
+            <p class="footer-fine">Frontend prototype &middot; not a substitute for professional medical advice &middot; built for Healthcare Innovation Hackathon.</p>
+        </footer>
+    </div>
+
+    <!-- Login/Register Screen -->
+    <div id="authScreen" class="screen">
+        <div class="auth-container">
+            <button class="back-to-site" data-page-back>&larr; Back to site</button>
+            <div class="auth-header">
+                <h1>MediTrack</h1>
+                <p>Digital Medication History & Safety Monitoring</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" data-tab="login">Login</button>
+                <button class="auth-tab-btn" data-tab="register">Register</button>
+            </div>
+
+            <!-- Login Tab -->
+            <div id="loginTab" class="auth-tab active">
+                <div class="role-selector">
+                    <label class="role-radio">
+                        <input type="radio" name="loginRole" value="buyer" checked>
+                        <span>Patient / Buyer</span>
+                    </label>
+                    <label class="role-radio">
+                        <input type="radio" name="loginRole" value="seller">
+                        <span>Medical Store / Seller</span>
+                    </label>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail">Email or Mobile Number</label>
+                        <input type="text" id="loginEmail" placeholder="Enter email or mobile" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">Login</button>
+                </form>
+
+                <div class="demo-credentials">
+                    <p><strong>Demo Accounts:</strong></p>
+                    <p><strong>Buyer:</strong> rahul@example.com / password</p>
+                    <p><strong>Seller:</strong> pharmacy@example.com / password</p>
+                </div>
+            </div>
+
+            <!-- Register Tab -->
+            <div id="registerTab" class="auth-tab">
+                <div class="role-selector">
+                    <label class="role-radio">
+                        <input type="radio" name="registerRole" value="buyer" checked>
+                        <span>Register as Patient</span>
+                    </label>
+                    <label class="role-radio">
+                        <input type="radio" name="registerRole" value="seller">
+                        <span>Register Medical Store</span>
+                    </label>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    <div id="buyerRegisterFields">
+                        <div class="form-group">
+                            <label for="regPatientName">Full Name</label>
+                            <input type="text" id="regPatientName" placeholder="Your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="regMobileNumber">Mobile Number</label>
+                            <input type="text" id="regMobileNumber" placeholder="10-digit mobile number">
+                        </div>
+                    </div>
+
+                    <div id="sellerRegisterFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="regStoreName">Medical Store Name</label>
+                            <input type="text" id="regStoreName" placeholder="Your pharmacy name">
+                        </div>
+                        <div class="form-group">
+                            <label for="regLicense">License Number</label>
+                            <input type="text" id="regLicense" placeholder="License number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" placeholder="Create password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buyer Dashboard Screen -->
+    <div id="buyerScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-brand">MediTrack</div>
+            <button class="navbar-toggle" aria-label="Toggle navigation">&#9776;</button>
+            <div class="navbar-menu">
+                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                <button class="nav-btn" data-section="history">Medication History</button>
+                <button class="nav-btn" data-section="alerts">Safety Alerts</button>
+                <button class="nav-btn" data-section="prescriptions">Prescriptions</button>
+                <button class="nav-btn" data-section="share">Share History</button>
+                <button class="nav-btn" data-section="reports">Reports</button>
+                <button class="nav-btn" data-section="profile">Profile</button>
+                <button class="nav-btn logout-btn" id="buyerLogout">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="section active">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Welcome, <span id="patientGreeting"></span></h1>
+                    <p>Your digital medication history at a glance</p>
+                </div>
+
+                <div class="buyer-dashboard">
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="card-icon">👤</div>
+                            <div class="card-content">
+                                <h3>Patient ID</h3>
+                                <p class="card-value" id="patientIDDisplay"></p>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="card-icon">📱</div>
+                            <div class="card-content">
+                                <h3>Mobile</h3>
+                                <p class="card-value" id="patientMobileDisplay"></p>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="card-icon">💊</div>
+                            <div class="card-content">
+                                <h3>Recent Medicines</h3>
+                                <p class="card-value" id="recentMedicineCount">0</p>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="card-icon">⚠️</div>
+                            <div class="card-content">
+                                <h3>Active Alerts</h3>
+                                <p class="card-value" id="activeAlertCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-panel">
+                            <h2>Recent Medicines</h2>
+                            <div id="recentMedicinesPanel" class="medicines-list">
+                                <p class="empty-state">No medicines in your history yet</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-panel">
+                            <h2>Current Medications</h2>
+                            <div id="currentMedicinesPanel" class="medicines-list">
+                                <p class="empty-state">No active medications</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Medication History Section -->
+        <section id="historySection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Medication History</h1>
+                    <div class="section-controls">
+                        <input type="text" id="historySearch" placeholder="Search medicines...">
+                    </div>
+                </div>
+
+                <div class="history-timeline" id="historyTimeline">
+                    <p class="empty-state">No medication history yet. Your medicines will appear here when purchased.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Safety Alerts Section -->
+        <section id="alertsSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>AI Safety Alerts</h1>
+                </div>
+
+                <div id="alertsContainer" class="alerts-container">
+                    <p class="empty-state">No safety alerts at this time</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prescriptions Section -->
+        <section id="prescriptionsSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Prescriptions</h1>
+                </div>
+
+                <div id="prescriptionsContainer" class="prescriptions-container">
+                    <p class="empty-state">No prescriptions in your history</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Share History Section -->
+        <section id="shareSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Share Your Medication History</h1>
+                    <p>Share your medical records with trusted doctors or other medical stores</p>
+                </div>
+
+                <div class="share-panel">
+                    <div class="share-control">
+                        <h2>Generate Share Code</h2>
+                        <p>Create a temporary access code to share your medication history</p>
+                        <button class="btn btn-primary" id="generateShareCode">Generate Access Code</button>
+                        <div id="shareCodeDisplay" style="display: none; margin-top: 20px;">
+                            <p>Your access code (valid for 7 days):</p>
+                            <div class="share-code-box">
+                                <code id="shareCodeValue"></code>
+                                <button class="btn btn-small" id="copyShareCode">Copy</button>
+                            </div>
+                            <p class="text-secondary">Share this code with a doctor or medical store to access your history</p>
+                        </div>
+                    </div>
+
+                    <div class="share-control">
+                        <h2>Active Share Codes</h2>
+                        <div id="activeShareCodes" class="share-codes-list">
+                            <p class="empty-state">No active share codes</p>
+                        </div>
+                    </div>
+
+                    <div class="share-control">
+                        <h2>Shared History Access Logs</h2>
+                        <div id="accessLogs" class="access-logs">
+                            <p class="empty-state">No access logs yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reportsSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Report an Issue</h1>
+                </div>
+
+                <div class="reports-container">
+                    <button class="btn btn-primary" id="createReportBtn">Create New Report</button>
+                    <div id="reportsListPanel" class="reports-list">
+                        <p class="empty-state">No reports yet</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profileSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Your Profile</h1>
+                </div>
+
+                <div class="profile-panel">
+                    <div class="profile-info">
+                        <h2>Personal Information</h2>
+                        <div class="info-row">
+                            <span>Name:</span>
+                            <span id="profileName"></span>
+                        </div>
+                        <div class="info-row">
+                            <span>Patient ID:</span>
+                            <span id="profilePatientID"></span>
+                        </div>
+                        <div class="info-row">
+                            <span>Mobile:</span>
+                            <span id="profileMobile"></span>
+                        </div>
+                        <div class="info-row">
+                            <span>Email:</span>
+                            <span id="profileEmail"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Seller Dashboard Screen -->
+    <div id="sellerScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-brand">MediTrack - Store</div>
+            <button class="navbar-toggle" aria-label="Toggle navigation">&#9776;</button>
+            <div class="navbar-menu">
+                <button class="nav-btn active" data-section="sellerdashboard">Dashboard</button>
+                <button class="nav-btn" data-section="inventory">Inventory</button>
+                <button class="nav-btn" data-section="addmedicine">Add Medicine</button>
+                <button class="nav-btn" data-section="newsale">New Sale</button>
+                <button class="nav-btn" data-section="patients">Patients</button>
+                <button class="nav-btn" data-section="sales">Sales History</button>
+                <button class="nav-btn" data-section="storereports">Reports</button>
+                <button class="nav-btn logout-btn" id="sellerLogout">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Seller Dashboard Section -->
+        <section id="sellerDashboardSection" class="section active">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Store Dashboard</h1>
+                    <p id="storeNameDisplay"></p>
+                </div>
+
+                <div class="seller-dashboard">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalMedicinesCount">0</div>
+                            <div class="stat-label">Total Medicines</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalStockCount">0</div>
+                            <div class="stat-label">Total Stock</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="lowStockCount">0</div>
+                            <div class="stat-label">Low Stock Medicines</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="todaysSalesCount">0</div>
+                            <div class="stat-label">Today's Sales</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="pendingPaymentsCount">0</div>
+                            <div class="stat-label">Pending Payments</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalPatientsCount">0</div>
+                            <div class="stat-label">Total Patients</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-panel">
+                            <h2>Recent Sales</h2>
+                            <div id="recentSalesPanel" class="sales-list">
+                                <p class="empty-state">No sales yet</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-panel">
+                            <h2>Low Stock Alerts</h2>
+                            <div id="lowStockPanel" class="alerts-list">
+                                <p class="empty-state">All medicines in stock</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-panel">
+                            <h2>Expiring Soon</h2>
+                            <div id="expiringPanel" class="alerts-list">
+                                <p class="empty-state">No medicines expiring soon</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section id="inventorySection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Medicine Inventory</h1>
+                    <div class="section-controls">
+                        <input type="text" id="inventorySearch" placeholder="Search medicines...">
+                        <select id="inventoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="BP">BP/Heart</option>
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Pain Relief">Pain Relief</option>
+                            <option value="Diabetes">Diabetes</option>
+                            <option value="Cold">Cold & Cough</option>
+                            <option value="Vitamin">Vitamins</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="inventoryTable" class="inventory-table">
+                    <p class="empty-state">No medicines in inventory. Add some to get started.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Medicine Section -->
+        <section id="addMedicineSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Add New Medicine</h1>
+                </div>
+
+                <form id="addMedicineForm" class="medicine-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="medicineName">Medicine Name *</label>
+                            <input type="text" id="medicineName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="genericName">Generic Name</label>
+                            <input type="text" id="genericName">
+                        </div>
+                        <div class="form-group">
+                            <label for="medicineCategory">Category *</label>
+                            <select id="medicineCategory" required>
+                                <option value="">Select category</option>
+                                <option value="BP">BP/Heart</option>
+                                <option value="Antibiotics">Antibiotics</option>
+                                <option value="Pain Relief">Pain Relief</option>
+                                <option value="Diabetes">Diabetes</option>
+                                <option value="Cold">Cold & Cough</option>
+                                <option value="Vitamin">Vitamins</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturer">Manufacturer</label>
+                            <input type="text" id="manufacturer">
+                        </div>
+                        <div class="form-group">
+                            <label for="medicinePrice">Price (₹) *</label>
+                            <input type="number" id="medicinePrice" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="medicineStock">Stock Quantity *</label>
+                            <input type="number" id="medicineStock" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="medicineExpiry">Expiry Date *</label>
+                            <input type="date" id="medicineExpiry" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prescriptionRequired">Prescription Required</label>
+                            <select id="prescriptionRequired">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicineDescription">Description</label>
+                        <textarea id="medicineDescription" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Medicine</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- New Sale Section -->
+        <section id="newSaleSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Create Medicine Purchase</h1>
+                </div>
+
+                <div class="sale-form-container">
+                    <div class="form-panel">
+                        <h2>Step 1: Select Patient</h2>
+                        <div class="search-patient">
+                            <div class="form-group">
+                                <label for="patientSearchInput">Patient ID or Mobile Number</label>
+                                <input type="text" id="patientSearchInput" placeholder="Search patient...">
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="searchPatientBtn">Search</button>
+                            <button type="button" class="btn btn-secondary" id="createNewPatientBtn">Create New Patient</button>
+                        </div>
+
+                        <div id="patientSearchResults" style="display: none; margin-top: 20px;">
+                            <h3>Search Results</h3>
+                            <div id="patientResultsList"></div>
+                        </div>
+
+                        <div id="selectedPatientInfo" class="patient-card" style="display: none;">
+                            <h3>Selected Patient</h3>
+                            <div class="info-row">
+                                <span>Name:</span>
+                                <span id="salePatientName"></span>
+                            </div>
+                            <div class="info-row">
+                                <span>Patient ID:</span>
+                                <span id="salePatientID"></span>
+                            </div>
+                            <div class="info-row">
+                                <span>Mobile:</span>
+                                <span id="salePatientMobile"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-panel">
+                        <h2>Step 2: Add Medicines</h2>
+                        <div id="medicineSelectorContainer" style="display: none;">
+                            <div class="form-group">
+                                <label for="medicineSelect">Select Medicine</label>
+                                <select id="medicineSelect">
+                                    <option value="">Choose a medicine...</option>
+                                </select>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="saleQuantity">Quantity</label>
+                                    <input type="number" id="saleQuantity" min="1" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="saleUnitPrice">Unit Price (₹)</label>
+                                    <input type="number" id="saleUnitPrice" step="0.01" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="saleDiscount">Discount (%)</label>
+                                    <input type="number" id="saleDiscount" min="0" max="100" value="0">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="addMedicineToSaleBtn">Add Medicine</button>
+                        </div>
+
+                        <div id="saleItemsList" class="sale-items-list" style="margin-top: 20px;">
+                            <p class="empty-state">No medicines added yet</p>
+                        </div>
+                    </div>
+
+                    <div class="form-panel">
+                        <h2>Step 3: Review & Complete</h2>
+                        <div id="saleSummary" class="sale-summary" style="display: none;">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td>Subtotal</td>
+                                        <td class="amount" id="saleSubtotal">₹0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Discount</td>
+                                        <td class="amount" id="saleTotalDiscount">₹0</td>
+                                    </tr>
+                                    <tr class="summary-total">
+                                        <td>Final Amount</td>
+                                        <td class="amount" id="saleFinalAmount">₹0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="payment-status">
+                                <label>
+                                    <input type="radio" name="paymentStatus" value="paid" checked>
+                                    <span>Payment Completed</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="paymentStatus" value="due">
+                                    <span>Payment Due</span>
+                                </label>
+                            </div>
+
+                            <div id="prescriptionSection" style="margin-top: 20px; display: none;">
+                                <h3>Prescription Information</h3>
+                                <p>A prescription is required for this medicine</p>
+                                <div class="form-group">
+                                    <label for="prescriptionID">Prescription ID (Optional)</label>
+                                    <input type="text" id="prescriptionID" placeholder="Enter prescription ID or leave blank">
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" id="completeSaleBtn">Complete Purchase</button>
+                        </div>
+
+                        <p id="noMedicinesWarning" class="empty-state">Select a patient and add medicines to continue</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Patients Section -->
+        <section id="patientsSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Patients</h1>
+                    <div class="section-controls">
+                        <input type="text" id="patientListSearch" placeholder="Search patients...">
+                    </div>
+                </div>
+
+                <div id="patientsList" class="patients-list">
+                    <p class="empty-state">No patients yet</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sales History Section -->
+        <section id="salesSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Sales History</h1>
+                    <div class="section-controls">
+                        <input type="text" id="salesSearch" placeholder="Search by patient or receipt...">
+                    </div>
+                </div>
+
+                <div id="salesList" class="sales-history">
+                    <p class="empty-state">No sales yet</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Store Reports Section -->
+        <section id="storeReportsSection" class="section">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Customer Reports</h1>
+                </div>
+
+                <div id="storeReportsList" class="reports-list">
+                    <p class="empty-state">No reports submitted</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content receipt-content">
+            <span class="close">&times;</span>
+            <div class="receipt">
+                <div class="receipt-header">
+                    <h1>Digital Receipt</h1>
+                    <p id="receiptDate"></p>
+                </div>
+
+                <table class="receipt-table">
+                    <tr>
+                        <td><strong>Receipt ID</strong></td>
+                        <td id="receiptID"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Patient</strong></td>
+                        <td id="receiptPatient"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Patient ID</strong></td>
+                        <td id="receiptPatientID"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Store</strong></td>
+                        <td id="receiptStore"></td>
+                    </tr>
+                </table>
+
+                <h3>Medicines</h3>
+                <div id="receiptItemsList" class="receipt-items"></div>
+
+                <table class="receipt-table receipt-totals">
+                    <tr>
+                        <td>Subtotal</td>
+                        <td id="receiptSubtotal"></td>
+                    </tr>
+                    <tr>
+                        <td>Discount</td>
+                        <td id="receiptDiscount"></td>
+                    </tr>
+                    <tr class="receipt-total">
+                        <td><strong>Total</strong></td>
+                        <td id="receiptTotal"></td>
+                    </tr>
+                    <tr>
+                        <td>Paid</td>
+                        <td id="receiptPaid"></td>
+                    </tr>
+                    <tr>
+                        <td>Due</td>
+                        <td id="receiptDue"></td>
+                    </tr>
+                </table>
+
+                <button class="btn btn-secondary" onclick="window.print()">Print Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Report an Issue</h2>
+            <form id="reportForm">
+                <div class="form-group">
+                    <label for="reportReceipt">Select Receipt</label>
+                    <select id="reportReceipt" required>
+                        <option value="">Choose a receipt...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportMedicine">Medicine</label>
+                    <input type="text" id="reportMedicine" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="reportIssueType">Issue Type</label>
+                    <select id="reportIssueType" required>
+                        <option value="">Select issue type</option>
+                        <option value="defective">Defective/Damaged</option>
+                        <option value="expired">Expired</option>
+                        <option value="incorrect">Incorrect Medicine</option>
+                        <option value="quantity">Quantity Mismatch</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDescription">Description</label>
+                    <textarea id="reportDescription" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create New Patient Modal -->
+    <div id="createPatientModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create New Patient</h2>
+            <form id="createPatientForm">
+                <div class="form-group">
+                    <label for="newPatientName">Patient Name *</label>
+                    <input type="text" id="newPatientName" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPatientMobile">Mobile Number *</label>
+                    <input type="text" id="newPatientMobile" placeholder="10-digit number" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Patient</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SMS Notification Toast -->
+    <div id="smsToast" class="toast" style="display: none;">
+        <div class="toast-content">
+            <strong>SMS Notification</strong>
+            <p id="smsMessage"></p>
+        </div>
+    </div>
+
+    <script>
+// ===================== DATA MANAGEMENT =====================
+
+const app = {
+    currentUser: null,
+    
+    init() {
+        this.checkExistingLogin();
+        this.setupEventListeners();
+        this.initializeDemo();
+    },
+
+    checkExistingLogin() {
+        const stored = localStorage.getItem('currentUser');
+        if (stored) {
+            this.currentUser = JSON.parse(stored);
+            this.showDashboard();
+        }
+    },
+
+    setupEventListeners() {
+        // Auth tabs
+        document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+            btn.addEventListener('click', e => this.switchAuthTab(e.target.dataset.tab));
+        });
+
+        // Role selection on register
+        document.querySelectorAll('input[name="registerRole"]').forEach(radio => {
+            radio.addEventListener('change', e => this.toggleRegisterFields(e.target.value));
+        });
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', e => this.handleLogin(e));
+
+        // Register
+        document.getElementById('registerForm').addEventListener('submit', e => this.handleRegister(e));
+
+        // Logout buttons
+        document.getElementById('buyerLogout').addEventListener('click', () => this.logout());
+        document.getElementById('sellerLogout').addEventListener('click', () => this.logout());
+
+        // Navigation
+        document.querySelectorAll('.nav-btn:not(.logout-btn)').forEach(btn => {
+            btn.addEventListener('click', e => this.switchSection(e.target.dataset.section));
+        });
+
+        // Mobile navbar toggle
+        document.querySelectorAll('.navbar-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.nextElementSibling.classList.toggle('nav-open');
+            });
+        });
+
+        // Public marketing site
+        document.querySelectorAll('.public-nav-link').forEach(btn => {
+            btn.addEventListener('click', e => this.showPublicPage(e.currentTarget.dataset.page));
+        });
+        document.querySelectorAll('[data-auth]').forEach(btn => {
+            btn.addEventListener('click', e => this.showAuth(e.currentTarget.dataset.auth));
+        });
+        document.querySelectorAll('.public-nav-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.nextElementSibling.classList.toggle('nav-open');
+            });
+        });
+        const backLink = document.querySelector('[data-page-back]');
+        if (backLink) backLink.addEventListener('click', () => this.showPublicSite());
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) contactForm.addEventListener('submit', e => this.handleContactForm(e));
+
+        // Modal close
+        document.querySelectorAll('.close').forEach(btn => {
+            btn.addEventListener('click', e => e.target.closest('.modal').classList.remove('show'));
+        });
+
+        // Buyer sections
+        this.setupBuyerListeners();
+
+        // Seller sections
+        this.setupSellerListeners();
+    },
+
+    initializeDemo() {
+        if (localStorage.getItem('demoInitialized')) return;
+
+        // Create demo users
+        const users = [
+            { id: 'P-100001', name: 'Rahul Sharma', mobile: '9876543210', email: 'rahul@example.com', password: 'password', role: 'buyer' },
+            { id: 'S-200001', storeName: 'MediCare Pharmacy', license: 'LIC-12345', email: 'pharmacy@example.com', password: 'password', role: 'seller' }
+        ];
+
+        // Create demo medicines
+        const medicines = [
+            { id: 'M001', name: 'Aspirin', generic: 'Acetylsalicylic Acid', category: 'Pain Relief', manufacturer: 'Bayer', price: 50, stock: 100, expiry: '2025-12-31', prescriptionRequired: false },
+            { id: 'M002', name: 'Amlodipine', generic: 'Amlodipine Besylate', category: 'BP', manufacturer: 'Pfizer', price: 120, stock: 80, expiry: '2026-06-30', prescriptionRequired: true },
+            { id: 'M003', name: 'Metformin', generic: 'Metformin HCL', category: 'Diabetes', manufacturer: 'Cipla', price: 150, stock: 60, expiry: '2026-03-31', prescriptionRequired: true },
+            { id: 'M004', name: 'Amoxicillin', generic: 'Amoxicillin', category: 'Antibiotics', manufacturer: 'GSK', price: 80, stock: 45, expiry: '2025-09-30', prescriptionRequired: true },
+            { id: 'M005', name: 'Paracetamol', generic: 'Acetaminophen', category: 'Pain Relief', manufacturer: 'Crocin', price: 40, stock: 150, expiry: '2025-11-30', prescriptionRequired: false },
+            { id: 'M006', name: 'Vitamin C', generic: 'Ascorbic Acid', category: 'Vitamin', manufacturer: 'Nature\'s Way', price: 100, stock: 70, expiry: '2026-08-31', prescriptionRequired: false },
+            { id: 'M007', name: 'Lisinopril', generic: 'Lisinopril', category: 'BP', manufacturer: 'Merck', price: 200, stock: 40, expiry: '2026-01-31', prescriptionRequired: true },
+        ];
+
+        // Create demo purchases/history for patient
+        const now = new Date();
+        const purchases = [
+            {
+                id: 'RX10001',
+                patientID: 'P-100001',
+                storeID: 'S-200001',
+                date: new Date(now.getTime() - 60*24*60*60*1000).toISOString(),
+                items: [{ medicineID: 'M002', medicineName: 'Amlodipine', quantity: 30, price: 120, discount: 0 }],
+                subtotal: 3600,
+                discount: 0,
+                total: 3600,
+                paid: 3600,
+                due: 0,
+                paymentStatus: 'paid'
+            },
+            {
+                id: 'RX10002',
+                patientID: 'P-100001',
+                storeID: 'S-200001',
+                date: new Date(now.getTime() - 30*24*60*60*1000).toISOString(),
+                items: [{ medicineID: 'M003', medicineName: 'Metformin', quantity: 60, price: 150, discount: 5 }],
+                subtotal: 9000,
+                discount: 450,
+                total: 8550,
+                paid: 8550,
+                due: 0,
+                paymentStatus: 'paid'
+            },
+            {
+                id: 'RX10003',
+                patientID: 'P-100001',
+                storeID: 'S-200001',
+                date: new Date(now.getTime() - 10*24*60*60*1000).toISOString(),
+                items: [{ medicineID: 'M002', medicineName: 'Amlodipine', quantity: 30, price: 120, discount: 0 }],
+                subtotal: 3600,
+                discount: 0,
+                total: 3600,
+                paid: 3600,
+                due: 0,
+                paymentStatus: 'paid'
+            }
+        ];
+
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('medicines', JSON.stringify(medicines));
+        localStorage.setItem('purchases', JSON.stringify(purchases));
+        localStorage.setItem('patients', JSON.stringify([
+            { id: 'P-100001', name: 'Rahul Sharma', mobile: '9876543210', email: 'rahul@example.com' }
+        ]));
+        localStorage.setItem('demoInitialized', 'true');
+    },
+
+    showPublicSite() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('publicScreen').classList.add('active');
+        document.querySelectorAll('.public-nav-menu.nav-open').forEach(m => m.classList.remove('nav-open'));
+        window.scrollTo(0, 0);
+    },
+
+    showAuth(tab) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('authScreen').classList.add('active');
+        document.querySelectorAll('.public-nav-menu.nav-open').forEach(m => m.classList.remove('nav-open'));
+        if (tab) this.switchAuthTab(tab);
+        window.scrollTo(0, 0);
+    },
+
+    showPublicPage(page) {
+        document.querySelectorAll('.public-page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('page-' + page);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.public-nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll(`.public-nav-link[data-page="${page}"]`).forEach(l => l.classList.add('active'));
+        document.querySelectorAll('.public-nav-menu.nav-open').forEach(m => m.classList.remove('nav-open'));
+        window.scrollTo(0, 0);
+    },
+
+    handleContactForm(e) {
+        e.preventDefault();
+        this.showToast("Thanks for reaching out! We'll get back to you soon. (demo only)");
+        e.target.reset();
+    },
+
+    switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.auth-tab-btn').forEach(el => el.classList.remove('active'));
+        
+        if (tab === 'login') {
+            document.getElementById('loginTab').classList.add('active');
+        } else {
+            document.getElementById('registerTab').classList.add('active');
+        }
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    },
+
+    toggleRegisterFields(role) {
+        if (role === 'buyer') {
+            document.getElementById('buyerRegisterFields').style.display = 'block';
+            document.getElementById('sellerRegisterFields').style.display = 'none';
+        } else {
+            document.getElementById('buyerRegisterFields').style.display = 'none';
+            document.getElementById('sellerRegisterFields').style.display = 'block';
+        }
+    },
+
+    handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const role = document.querySelector('input[name="loginRole"]:checked').value;
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => (u.email === email || u.mobile === email) && u.password === password && u.role === role);
+
+        if (user) {
+            this.currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            this.showDashboard();
+        } else {
+            alert('Invalid credentials');
+        }
+    },
+
+    handleRegister(e) {
+        e.preventDefault();
+        const role = document.querySelector('input[name="registerRole"]:checked').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+        let newUser;
+        if (role === 'buyer') {
+            const name = document.getElementById('regPatientName').value;
+            const mobile = document.getElementById('regMobileNumber').value;
+            newUser = {
+                id: 'P-' + Date.now(),
+                name,
+                mobile,
+                email,
+                password,
+                role: 'buyer'
+            };
+        } else {
+            const storeName = document.getElementById('regStoreName').value;
+            const license = document.getElementById('regLicense').value;
+            newUser = {
+                id: 'S-' + Date.now(),
+                storeName,
+                license,
+                email,
+                password,
+                role: 'seller'
+            };
+        }
+
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        this.currentUser = newUser;
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+        this.showDashboard();
+    },
+
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('currentUser');
+
+        document.querySelectorAll('.navbar-menu.nav-open').forEach(m => m.classList.remove('nav-open'));
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('authScreen').classList.add('active');
+        
+        document.getElementById('loginForm').reset();
+        document.getElementById('registerForm').reset();
+        document.getElementById('loginTab').classList.add('active');
+        document.getElementById('registerTab').classList.remove('active');
+    },
+
+    showDashboard() {
+        document.getElementById('authScreen').classList.remove('active');
+        document.getElementById('publicScreen').classList.remove('active');
+        
+        if (this.currentUser.role === 'buyer') {
+            document.getElementById('buyerScreen').classList.add('active');
+            this.loadBuyerDashboard();
+        } else {
+            document.getElementById('sellerScreen').classList.add('active');
+            this.loadSellerDashboard();
+        }
+    },
+
+    switchSection(section) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.navbar-menu.nav-open').forEach(m => m.classList.remove('nav-open'));
+        
+        let sectionElement;
+        if (this.currentUser.role === 'buyer') {
+            const sectionMap = {
+                'dashboard': 'dashboardSection',
+                'history': 'historySection',
+                'alerts': 'alertsSection',
+                'prescriptions': 'prescriptionsSection',
+                'share': 'shareSection',
+                'reports': 'reportsSection',
+                'profile': 'profileSection'
+            };
+            sectionElement = document.getElementById(sectionMap[section]);
+        } else {
+            const sectionMap = {
+                'sellerdashboard': 'sellerDashboardSection',
+                'inventory': 'inventorySection',
+                'addmedicine': 'addMedicineSection',
+                'newsale': 'newSaleSection',
+                'patients': 'patientsSection',
+                'sales': 'salesSection',
+                'storereports': 'storeReportsSection'
+            };
+            sectionElement = document.getElementById(sectionMap[section]);
+        }
+        
+        if (sectionElement) {
+            sectionElement.classList.add('active');
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            
+            // Load section data
+            if (this.currentUser.role === 'buyer') {
+                this.loadBuyerSection(section);
+            } else {
+                this.loadSellerSection(section);
+            }
+        }
+    }
+};
+
+// ===================== BUYER FUNCTIONALITY =====================
+
+Object.assign(app, {
+    loadBuyerDashboard() {
+        const patient = this.currentUser;
+        const purchasesStr = localStorage.getItem('purchases') || '[]';
+        const purchases = JSON.parse(purchasesStr).filter(p => p.patientID === patient.id);
+
+        document.getElementById('patientGreeting').textContent = patient.name;
+        document.getElementById('patientIDDisplay').textContent = patient.id;
+        document.getElementById('patientMobileDisplay').textContent = patient.mobile;
+        document.getElementById('recentMedicineCount').textContent = purchases.length;
+
+        this.updateAIAlerts();
+        this.displayRecentMedicines();
+        this.displayCurrentMedications();
+    },
+
+    loadBuyerSection(section) {
+        if (section === 'dashboard') {
+            this.loadBuyerDashboard();
+        } else if (section === 'history') {
+            this.displayMedicationHistory();
+        } else if (section === 'alerts') {
+            this.displayAIAlerts();
+        } else if (section === 'prescriptions') {
+            this.displayPrescriptions();
+        } else if (section === 'share') {
+            this.displayShareOptions();
+        } else if (section === 'reports') {
+            this.displayPatientReports();
+        } else if (section === 'profile') {
+            this.displayPatientProfile();
+        }
+    },
+
+    displayRecentMedicines() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.patientID === this.currentUser.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+
+        const panel = document.getElementById('recentMedicinesPanel');
+        
+        if (purchases.length === 0) {
+            panel.innerHTML = '<p class="empty-state">No medicines in your history yet</p>';
+            return;
+        }
+
+        panel.innerHTML = purchases.map(purchase => `
+            <div class="medicine-item">
+                <div>
+                    <div class="medicine-name">${purchase.items.map(i => i.medicineName).join(', ')}</div>
+                    <div class="medicine-meta">${new Date(purchase.date).toLocaleDateString()} • Receipt #${purchase.id}</div>
+                </div>
+                <button class="btn btn-small" onclick="app.showReceipt('${purchase.id}')">View Receipt</button>
+            </div>
+        `).join('');
+
+        document.getElementById('activeAlertCount').textContent = this.getActiveAlerts().length;
+    },
+
+    displayCurrentMedications() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.patientID === this.currentUser.id);
+
+        const medicines = {};
+        purchases.forEach(purchase => {
+            purchase.items.forEach(item => {
+                if (!medicines[item.medicineID]) {
+                    medicines[item.medicineID] = { name: item.medicineName, count: 0, lastDate: purchase.date };
+                }
+                medicines[item.medicineID].count++;
+                if (new Date(purchase.date) > new Date(medicines[item.medicineID].lastDate)) {
+                    medicines[item.medicineID].lastDate = purchase.date;
+                }
+            });
+        });
+
+        const panel = document.getElementById('currentMedicinesPanel');
+        const medicinesList = Object.values(medicines);
+
+        if (medicinesList.length === 0) {
+            panel.innerHTML = '<p class="empty-state">No active medications</p>';
+            return;
+        }
+
+        panel.innerHTML = medicinesList.map(med => `
+            <div class="medicine-item">
+                <div>
+                    <div class="medicine-name">${med.name}</div>
+                    <div class="medicine-meta">${med.count} purchase(s)</div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    displayMedicationHistory() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.patientID === this.currentUser.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const timeline = document.getElementById('historyTimeline');
+        
+        if (purchases.length === 0) {
+            timeline.innerHTML = '<p class="empty-state">No medication history yet</p>';
+            return;
+        }
+
+        timeline.innerHTML = purchases.map(purchase => {
+            const date = new Date(purchase.date);
+            return `
+                <div class="timeline-item">
+                    <div class="timeline-date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    <div class="timeline-content">
+                        ${purchase.items.map(item => `
+                            <div class="timeline-medicine-name">${item.medicineName}</div>
+                            <div class="timeline-details">
+                                <div class="timeline-detail">
+                                    <div class="timeline-detail-label">Quantity</div>
+                                    <div class="timeline-detail-value">${item.quantity} tablets</div>
+                                </div>
+                                <div class="timeline-detail">
+                                    <div class="timeline-detail-label">Price</div>
+                                    <div class="timeline-detail-value">₹${item.price}</div>
+                                </div>
+                                <div class="timeline-detail">
+                                    <div class="timeline-detail-label">Amount</div>
+                                    <div class="timeline-detail-value">₹${(item.quantity * item.price * (100 - item.discount) / 100).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div class="timeline-action">
+                            <button class="btn btn-small" onclick="app.showReceipt('${purchase.id}')">View Receipt</button>
+                            <button class="btn btn-small" onclick="app.openReportModal('${purchase.id}')">Report Issue</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    getActiveAlerts() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.patientID === this.currentUser.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const alerts = [];
+        const medicineCounts = {};
+        const now = new Date();
+
+        purchases.forEach(purchase => {
+            purchase.items.forEach(item => {
+                if (!medicineCounts[item.medicineID]) {
+                    medicineCounts[item.medicineID] = { name: item.medicineName, count: 0, dates: [] };
+                }
+                medicineCounts[item.medicineID].count++;
+                medicineCounts[item.medicineID].dates.push(new Date(purchase.date));
+            });
+        });
+
+        // Alert for repeated medicine usage
+        Object.values(medicineCounts).forEach(med => {
+            if (med.count >= 3) {
+                const firstDate = Math.min(...med.dates.map(d => d.getTime()));
+                const daysSince = (now - new Date(firstDate)) / (1000 * 60 * 60 * 24);
+                if (daysSince >= 30) {
+                    alerts.push({
+                        type: 'warning',
+                        icon: '⚠️',
+                        title: 'Repeated Medication Usage',
+                        description: `You have purchased ${med.name} ${med.count} times in the last ${Math.floor(daysSince)} days. Please consult a healthcare professional for a medication review.`
+                    });
+                }
+            }
+        });
+
+        // Alert for multiple medications
+        if (Object.keys(medicineCounts).length >= 3 && purchases.length > 0) {
+            const recentPurchase = purchases[0];
+            if ((now - new Date(recentPurchase.date)) / (1000 * 60 * 60 * 24) < 7) {
+                alerts.push({
+                    type: 'info',
+                    icon: 'ℹ️',
+                    title: 'Multiple Medications Detected',
+                    description: `You are currently on ${Object.keys(medicineCounts).length} different medications. Consider consulting your doctor for a comprehensive medication review.`
+                });
+            }
+        }
+
+        return alerts;
+    },
+
+    updateAIAlerts() {
+        const activeAlertCount = this.getActiveAlerts().length;
+        document.getElementById('activeAlertCount').textContent = activeAlertCount;
+    },
+
+    displayAIAlerts() {
+        const alerts = this.getActiveAlerts();
+        const container = document.getElementById('alertsContainer');
+
+        if (alerts.length === 0) {
+            container.innerHTML = '<p class="empty-state">No safety alerts at this time</p>';
+            return;
+        }
+
+        container.innerHTML = alerts.map(alert => `
+            <div class="alert alert-${alert.type}">
+                <div class="alert-icon">${alert.icon}</div>
+                <div class="alert-content">
+                    <h3>${alert.title}</h3>
+                    <p>${alert.description}</p>
+                    <p style="font-size: 11px; margin-top: 8px; font-style: italic;">This is an informational alert. Please consult with a healthcare professional for medical advice.</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    displayPrescriptions() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.patientID === this.currentUser.id);
+
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        const container = document.getElementById('prescriptionsContainer');
+
+        const prescriptionItems = [];
+        purchases.forEach(purchase => {
+            purchase.items.forEach(item => {
+                const medicine = medicines.find(m => m.id === item.medicineID);
+                if (medicine && medicine.prescriptionRequired) {
+                    prescriptionItems.push({
+                        medicineName: item.medicineName,
+                        date: purchase.date,
+                        receiptID: purchase.id
+                    });
+                }
+            });
+        });
+
+        if (prescriptionItems.length === 0) {
+            container.innerHTML = '<p class="empty-state">No prescriptions in your history</p>';
+            return;
+        }
+
+        container.innerHTML = prescriptionItems.map(item => `
+            <div class="medicine-item">
+                <div>
+                    <div class="medicine-name">✓ ${item.medicineName}</div>
+                    <div class="medicine-meta">${new Date(item.date).toLocaleDateString()} • Receipt #${item.receiptID}</div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    displayShareOptions() {
+        this.loadActiveShareCodes();
+        this.loadAccessLogs();
+    },
+
+    loadActiveShareCodes() {
+        const codes = JSON.parse(localStorage.getItem('shareCodes') || '{}');
+        const patientCodes = codes[this.currentUser.id] || [];
+        const container = document.getElementById('activeShareCodes');
+
+        if (patientCodes.length === 0) {
+            container.innerHTML = '<p class="empty-state">No active share codes</p>';
+            return;
+        }
+
+        container.innerHTML = patientCodes.map(code => `
+            <div class="share-code-item">
+                <div><strong>Code:</strong> ${code.code}</div>
+                <div><strong>Created:</strong> ${new Date(code.created).toLocaleDateString()}</div>
+                <div><strong>Expires:</strong> ${new Date(code.expires).toLocaleDateString()}</div>
+                <button class="btn btn-small btn-danger" onclick="app.revokeShareCode('${code.code}')">Revoke</button>
+            </div>
+        `).join('');
+    },
+
+    loadAccessLogs() {
+        const logs = JSON.parse(localStorage.getItem('accessLogs') || '{}');
+        const patientLogs = logs[this.currentUser.id] || [];
+        const container = document.getElementById('accessLogs');
+
+        if (patientLogs.length === 0) {
+            container.innerHTML = '<p class="empty-state">No access logs yet</p>';
+            return;
+        }
+
+        container.innerHTML = patientLogs.map(log => `
+            <div class="access-log-item">
+                <strong>${log.accessedBy}</strong> accessed your medication history on ${new Date(log.timestamp).toLocaleString()}
+            </div>
+        `).join('');
+    },
+
+    generateShareCode() {
+        const code = 'SHR' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        const now = new Date();
+        const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        let codes = JSON.parse(localStorage.getItem('shareCodes') || '{}');
+        if (!codes[this.currentUser.id]) codes[this.currentUser.id] = [];
+
+        codes[this.currentUser.id].push({
+            code,
+            created: now.toISOString(),
+            expires: expires.toISOString()
+        });
+
+        localStorage.setItem('shareCodes', JSON.stringify(codes));
+
+        document.getElementById('shareCodeValue').textContent = code;
+        document.getElementById('shareCodeDisplay').style.display = 'block';
+
+        this.showToast(`Share code generated: ${code}`);
+    },
+
+    copyShareCode() {
+        const code = document.getElementById('shareCodeValue').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            this.showToast('Share code copied to clipboard');
+        });
+    },
+
+    revokeShareCode(code) {
+        let codes = JSON.parse(localStorage.getItem('shareCodes') || '{}');
+        codes[this.currentUser.id] = codes[this.currentUser.id].filter(c => c.code !== code);
+        localStorage.setItem('shareCodes', JSON.stringify(codes));
+        this.loadActiveShareCodes();
+        this.showToast('Share code revoked');
+    },
+
+    displayPatientReports() {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]')
+            .filter(r => r.patientID === this.currentUser.id);
+
+        const panel = document.getElementById('reportsListPanel');
+
+        if (reports.length === 0) {
+            panel.innerHTML = '<p class="empty-state">No reports yet</p>';
+            return;
+        }
+
+        panel.innerHTML = reports.map(report => `
+            <div class="report-item">
+                <div class="report-header">
+                    <div class="report-id">Report #${report.id}</div>
+                    <span class="report-status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span>
+                </div>
+                <div class="report-details">
+                    <p><strong>Receipt:</strong> ${report.receiptID}</p>
+                    <p><strong>Medicine:</strong> ${report.medicine}</p>
+                    <p><strong>Issue Type:</strong> ${report.issueType}</p>
+                    <p><strong>Description:</strong> ${report.description}</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 8px;">Submitted: ${new Date(report.submitted).toLocaleString()}</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    openReportModal(receiptID) {
+        const modal = document.getElementById('reportModal');
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+        const purchase = purchases.find(p => p.id === receiptID);
+
+        if (!purchase) return;
+
+        const reportReceipt = document.getElementById('reportReceipt');
+        reportReceipt.innerHTML = `<option value="${receiptID}">${receiptID}</option>`;
+        reportReceipt.value = receiptID;
+
+        if (purchase.items.length > 0) {
+            document.getElementById('reportMedicine').value = purchase.items[0].medicineName;
+        }
+
+        modal.classList.add('show');
+    },
+
+    displayPatientProfile() {
+        const patient = this.currentUser;
+        document.getElementById('profileName').textContent = patient.name;
+        document.getElementById('profilePatientID').textContent = patient.id;
+        document.getElementById('profileMobile').textContent = patient.mobile;
+        document.getElementById('profileEmail').textContent = patient.email;
+    },
+
+    showReceipt(receiptID) {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+        const purchase = purchases.find(p => p.id === receiptID);
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+
+        if (!purchase) return;
+
+        document.getElementById('receiptID').textContent = purchase.id;
+        document.getElementById('receiptDate').textContent = new Date(purchase.date).toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        document.getElementById('receiptPatient').textContent = this.currentUser.name;
+        document.getElementById('receiptPatientID').textContent = this.currentUser.id;
+
+        const stores = JSON.parse(localStorage.getItem('users') || '[]');
+        const store = stores.find(s => s.id === purchase.storeID);
+        document.getElementById('receiptStore').textContent = store ? store.storeName : 'Unknown Store';
+
+        const itemsList = document.getElementById('receiptItemsList');
+        itemsList.innerHTML = purchase.items.map(item => {
+            const discountAmount = (item.quantity * item.price * item.discount / 100).toFixed(2);
+            const itemTotal = (item.quantity * item.price * (100 - item.discount) / 100).toFixed(2);
+            return `
+                <div class="receipt-item">
+                    <div>${item.medicineName}</div>
+                    <div>${item.quantity}</div>
+                    <div>₹${(item.quantity * item.price).toFixed(2)}</div>
+                    <div>₹${itemTotal}</div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('receiptSubtotal').textContent = '₹' + purchase.subtotal.toFixed(2);
+        document.getElementById('receiptDiscount').textContent = '₹' + purchase.discount.toFixed(2);
+        document.getElementById('receiptTotal').textContent = '₹' + purchase.total.toFixed(2);
+        document.getElementById('receiptPaid').textContent = '₹' + purchase.paid.toFixed(2);
+        document.getElementById('receiptDue').textContent = '₹' + purchase.due.toFixed(2);
+
+        document.getElementById('receiptModal').classList.add('show');
+    },
+
+    setupBuyerListeners() {
+        document.getElementById('generateShareCode').addEventListener('click', () => this.generateShareCode());
+        document.getElementById('copyShareCode').addEventListener('click', () => this.copyShareCode());
+        document.getElementById('createReportBtn').addEventListener('click', () => this.openReportModal());
+
+        document.getElementById('reportForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const receiptID = document.getElementById('reportReceipt').value;
+            const issueType = document.getElementById('reportIssueType').value;
+            const description = document.getElementById('reportDescription').value;
+
+            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+            const purchase = purchases.find(p => p.id === receiptID);
+
+            if (!purchase) return;
+
+            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            reports.push({
+                id: 'RPT' + Date.now(),
+                patientID: this.currentUser.id,
+                receiptID,
+                medicine: purchase.items[0]?.medicineName || 'Unknown',
+                issueType,
+                description,
+                status: 'Pending Review',
+                submitted: new Date().toISOString()
+            });
+
+            localStorage.setItem('reports', JSON.stringify(reports));
+            document.getElementById('reportModal').classList.remove('show');
+            document.getElementById('reportForm').reset();
+            this.showToast('Report submitted successfully');
+            this.displayPatientReports();
+        });
+
+        // Search history
+        document.getElementById('historySearch').addEventListener('input', e => {
+            const searchTerm = e.target.value.toLowerCase();
+            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+                .filter(p => p.patientID === this.currentUser.id)
+                .filter(p => p.items.some(i => i.medicineName.toLowerCase().includes(searchTerm)))
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const timeline = document.getElementById('historyTimeline');
+            
+            if (purchases.length === 0) {
+                timeline.innerHTML = '<p class="empty-state">No medicines found</p>';
+                return;
+            }
+
+            timeline.innerHTML = purchases.map(purchase => {
+                const date = new Date(purchase.date);
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        <div class="timeline-content">
+                            ${purchase.items.map(item => `
+                                <div class="timeline-medicine-name">${item.medicineName}</div>
+                                <div class="timeline-details">
+                                    <div class="timeline-detail">
+                                        <div class="timeline-detail-label">Quantity</div>
+                                        <div class="timeline-detail-value">${item.quantity} tablets</div>
+                                    </div>
+                                    <div class="timeline-detail">
+                                        <div class="timeline-detail-label">Price</div>
+                                        <div class="timeline-detail-value">₹${item.price}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div class="timeline-action">
+                                <button class="btn btn-small" onclick="app.showReceipt('${purchase.id}')">View Receipt</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    }
+});
+
+// ===================== SELLER FUNCTIONALITY =====================
+
+Object.assign(app, {
+    currentSaleItems: [],
+    selectedPatient: null,
+
+    loadSellerDashboard() {
+        const store = this.currentUser;
+        document.getElementById('storeNameDisplay').textContent = store.storeName;
+
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.storeID === store.id);
+
+        // Count stats
+        document.getElementById('totalMedicinesCount').textContent = medicines.length;
+        document.getElementById('totalStockCount').textContent = medicines.reduce((sum, m) => sum + m.stock, 0);
+        
+        const lowStock = medicines.filter(m => m.stock < 20).length;
+        document.getElementById('lowStockCount').textContent = lowStock;
+
+        const today = new Date().toDateString();
+        const todaysSales = purchases.filter(p => new Date(p.date).toDateString() === today).length;
+        document.getElementById('todaysSalesCount').textContent = todaysSales;
+
+        const pendingPayments = purchases.filter(p => p.paymentStatus === 'due').length;
+        document.getElementById('pendingPaymentsCount').textContent = pendingPayments;
+
+        const patients = new Set(purchases.map(p => p.patientID));
+        document.getElementById('totalPatientsCount').textContent = patients.size;
+
+        this.displayRecentSales();
+        this.displayLowStockAlerts();
+        this.displayExpiringMedicines();
+    },
+
+    loadSellerSection(section) {
+        if (section === 'sellerdashboard') {
+            this.loadSellerDashboard();
+        } else if (section === 'inventory') {
+            this.displayInventory();
+        } else if (section === 'addmedicine') {
+            this.setupAddMedicineForm();
+        } else if (section === 'newsale') {
+            this.setupNewSaleForm();
+        } else if (section === 'patients') {
+            this.displayPatientsList();
+        } else if (section === 'sales') {
+            this.displaySalesHistory();
+        } else if (section === 'storereports') {
+            this.displayStoreReports();
+        }
+    },
+
+    displayInventory() {
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        const searchTerm = document.getElementById('inventorySearch').value.toLowerCase();
+        const category = document.getElementById('inventoryFilter').value;
+
+        let filtered = medicines.filter(m => 
+            m.name.toLowerCase().includes(searchTerm) &&
+            (category === '' || m.category === category)
+        );
+
+        const table = document.getElementById('inventoryTable');
+
+        if (filtered.length === 0) {
+            table.innerHTML = '<p class="empty-state">No medicines found</p>';
+            return;
+        }
+
+        table.innerHTML = `
+            <div class="inventory-header">
+                <div>Medicine Name</div>
+                <div>Category</div>
+                <div>Price</div>
+                <div>Stock</div>
+                <div>Expiry</div>
+                <div>Rx Req.</div>
+                <div>Actions</div>
+            </div>
+            ${filtered.map(medicine => {
+                const expiryDate = new Date(medicine.expiry);
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                const isExpiring = daysUntilExpiry < 30;
+
+                return `
+                    <div class="inventory-row" style="${isExpiring ? 'background-color: #fff3cd;' : ''}">
+                        <div>${medicine.name}</div>
+                        <div>${medicine.category}</div>
+                        <div>₹${medicine.price}</div>
+                        <div>${medicine.stock}</div>
+                        <div>${new Date(medicine.expiry).toLocaleDateString()}</div>
+                        <div>${medicine.prescriptionRequired ? 'Yes' : 'No'}</div>
+                        <div class="inventory-actions">
+                            <button class="action-btn" onclick="app.editMedicine('${medicine.id}')">Edit</button>
+                            <button class="action-btn" onclick="app.deleteMedicine('${medicine.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        `;
+    },
+
+    setupAddMedicineForm() {
+        document.getElementById('addMedicineForm').addEventListener('submit', e => {
+            e.preventDefault();
+
+            const medicine = {
+                id: 'M' + Date.now(),
+                name: document.getElementById('medicineName').value,
+                generic: document.getElementById('genericName').value,
+                category: document.getElementById('medicineCategory').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                price: parseFloat(document.getElementById('medicinePrice').value),
+                stock: parseInt(document.getElementById('medicineStock').value),
+                expiry: document.getElementById('medicineExpiry').value,
+                prescriptionRequired: document.getElementById('prescriptionRequired').value === 'true'
+            };
+
+            let medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+            medicines.push(medicine);
+            localStorage.setItem('medicines', JSON.stringify(medicines));
+
+            this.showToast(`Medicine "${medicine.name}" added successfully`);
+            document.getElementById('addMedicineForm').reset();
+            this.loadSellerDashboard();
+        }, { once: true });
+    },
+
+    deleteMedicine(id) {
+        if (!confirm('Are you sure you want to delete this medicine?')) return;
+
+        let medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        medicines = medicines.filter(m => m.id !== id);
+        localStorage.setItem('medicines', JSON.stringify(medicines));
+
+        this.showToast('Medicine deleted successfully');
+        this.displayInventory();
+        this.loadSellerDashboard();
+    },
+
+    setupNewSaleForm() {
+        this.currentSaleItems = [];
+
+        document.getElementById('searchPatientBtn').addEventListener('click', () => this.searchPatient());
+        document.getElementById('createNewPatientBtn').addEventListener('click', () => this.openCreatePatientModal());
+        document.getElementById('addMedicineToSaleBtn').addEventListener('click', () => this.addMedicineToSale());
+        document.getElementById('completeSaleBtn').addEventListener('click', () => this.completeSale());
+
+        // Populate medicine select
+        const medicineSelect = document.getElementById('medicineSelect');
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        medicineSelect.innerHTML = '<option value="">Choose a medicine...</option>' +
+            medicines.map(m => `<option value="${m.id}">${m.name} (₹${m.price})</option>`).join('');
+
+        medicineSelect.addEventListener('change', e => {
+            const medicineID = e.target.value;
+            if (medicineID) {
+                const medicine = medicines.find(m => m.id === medicineID);
+                document.getElementById('saleUnitPrice').value = medicine.price;
+            }
+        });
+    },
+
+    searchPatient() {
+        const searchTerm = document.getElementById('patientSearchInput').value;
+        const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+
+        const results = patients.filter(p => 
+            p.id.includes(searchTerm) || p.mobile.includes(searchTerm)
+        );
+
+        const resultsContainer = document.getElementById('patientSearchResults');
+        const resultsList = document.getElementById('patientResultsList');
+
+        if (results.length === 0) {
+            resultsList.innerHTML = '<p class="empty-state">No patients found</p>';
+        } else {
+            resultsList.innerHTML = results.map(patient => `
+                <div class="patient-item" onclick="app.selectPatientForSale('${patient.id}')">
+                    <div class="patient-item-name">${patient.name}</div>
+                    <div class="patient-item-detail">
+                        <span class="patient-item-label">ID:</span>
+                        <span class="patient-item-value">${patient.id}</span>
+                    </div>
+                    <div class="patient-item-detail">
+                        <span class="patient-item-label">Mobile:</span>
+                        <span class="patient-item-value">${patient.mobile}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        resultsContainer.style.display = 'block';
+    },
+
+    selectPatientForSale(patientID) {
+        const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+        this.selectedPatient = patients.find(p => p.id === patientID);
+
+        if (!this.selectedPatient) return;
+
+        document.getElementById('patientSearchResults').style.display = 'none';
+        document.getElementById('selectedPatientInfo').style.display = 'block';
+        document.getElementById('salePatientName').textContent = this.selectedPatient.name;
+        document.getElementById('salePatientID').textContent = this.selectedPatient.id;
+        document.getElementById('salePatientMobile').textContent = this.selectedPatient.mobile;
+
+        document.getElementById('medicineSelectorContainer').style.display = 'block';
+        this.currentSaleItems = [];
+    },
+
+    addMedicineToSale() {
+        const medicineID = document.getElementById('medicineSelect').value;
+        const quantity = parseInt(document.getElementById('saleQuantity').value);
+        const unitPrice = parseFloat(document.getElementById('saleUnitPrice').value);
+        const discount = parseInt(document.getElementById('saleDiscount').value);
+
+        if (!medicineID) {
+            alert('Please select a medicine');
+            return;
+        }
+
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        const medicine = medicines.find(m => m.id === medicineID);
+
+        if (medicine.stock < quantity) {
+            alert('Not enough stock available');
+            return;
+        }
+
+        this.currentSaleItems.push({
+            medicineID,
+            medicineName: medicine.name,
+            quantity,
+            price: unitPrice,
+            discount,
+            requiresPrescription: medicine.prescriptionRequired
+        });
+
+        this.displaySaleItems();
+        this.updateSaleSummary();
+    },
+
+    displaySaleItems() {
+        const list = document.getElementById('saleItemsList');
+
+        if (this.currentSaleItems.length === 0) {
+            list.innerHTML = '<p class="empty-state">No medicines added yet</p>';
+            return;
+        }
+
+        list.innerHTML = this.currentSaleItems.map((item, index) => {
+            const subtotal = item.quantity * item.price;
+            const discountAmount = subtotal * (item.discount / 100);
+            const total = subtotal - discountAmount;
+
+            return `
+                <div class="sale-item">
+                    <div class="sale-item-details">
+                        <div class="sale-item-label">Medicine</div>
+                        <div>${item.medicineName}</div>
+                    </div>
+                    <div class="sale-item-details">
+                        <div class="sale-item-label">Qty</div>
+                        <div>${item.quantity}</div>
+                    </div>
+                    <div class="sale-item-details">
+                        <div class="sale-item-label">Price</div>
+                        <div>₹${item.price}</div>
+                    </div>
+                    <div class="sale-item-details">
+                        <div class="sale-item-label">Discount</div>
+                        <div>${item.discount}%</div>
+                    </div>
+                    <div class="sale-item-details">
+                        <div class="sale-item-label">Total</div>
+                        <div>₹${total.toFixed(2)}</div>
+                    </div>
+                    <button class="action-btn" onclick="app.removeSaleItem(${index})">Remove</button>
+                </div>
+            `;
+        }).join('');
+    },
+
+    removeSaleItem(index) {
+        this.currentSaleItems.splice(index, 1);
+        this.displaySaleItems();
+        this.updateSaleSummary();
+    },
+
+    updateSaleSummary() {
+        const summary = document.getElementById('saleSummary');
+        const warning = document.getElementById('noMedicinesWarning');
+
+        if (this.currentSaleItems.length === 0 || !this.selectedPatient) {
+            summary.style.display = 'none';
+            warning.style.display = 'block';
+            return;
+        }
+
+        summary.style.display = 'block';
+        warning.style.display = 'none';
+
+        let subtotal = 0;
+        let totalDiscount = 0;
+
+        this.currentSaleItems.forEach(item => {
+            const itemSubtotal = item.quantity * item.price;
+            const discountAmount = itemSubtotal * (item.discount / 100);
+            subtotal += itemSubtotal;
+            totalDiscount += discountAmount;
+        });
+
+        const finalAmount = subtotal - totalDiscount;
+
+        document.getElementById('saleSubtotal').textContent = '₹' + subtotal.toFixed(2);
+        document.getElementById('saleTotalDiscount').textContent = '₹' + totalDiscount.toFixed(2);
+        document.getElementById('saleFinalAmount').textContent = '₹' + finalAmount.toFixed(2);
+
+        // Check if any medicine requires prescription
+        const requiresPrescription = this.currentSaleItems.some(item => item.requiresPrescription);
+        document.getElementById('prescriptionSection').style.display = requiresPrescription ? 'block' : 'none';
+    },
+
+    completeSale() {
+        if (!this.selectedPatient || this.currentSaleItems.length === 0) {
+            alert('Please select a patient and add medicines');
+            return;
+        }
+
+        const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
+
+        let subtotal = 0;
+        let totalDiscount = 0;
+
+        this.currentSaleItems.forEach(item => {
+            const itemSubtotal = item.quantity * item.price;
+            const discountAmount = itemSubtotal * (item.discount / 100);
+            subtotal += itemSubtotal;
+            totalDiscount += discountAmount;
+        });
+
+        const finalAmount = subtotal - totalDiscount;
+
+        // Update medicine stock
+        let medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        this.currentSaleItems.forEach(item => {
+            const medicine = medicines.find(m => m.id === item.medicineID);
+            if (medicine) {
+                medicine.stock -= item.quantity;
+            }
+        });
+        localStorage.setItem('medicines', JSON.stringify(medicines));
+
+        // Create purchase record
+        const purchase = {
+            id: 'RX' + Date.now().toString().slice(-5).padStart(5, '0'),
+            patientID: this.selectedPatient.id,
+            storeID: this.currentUser.id,
+            date: new Date().toISOString(),
+            items: this.currentSaleItems,
+            subtotal,
+            discount: totalDiscount,
+            total: finalAmount,
+            paid: paymentStatus === 'paid' ? finalAmount : 0,
+            due: paymentStatus === 'due' ? finalAmount : 0,
+            paymentStatus
+        };
+
+        let purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+        purchases.push(purchase);
+        localStorage.setItem('purchases', JSON.stringify(purchases));
+
+        // Trigger AI analysis
+        this.triggerAIAnalysis(this.selectedPatient.id);
+
+        // Send SMS notification
+        this.sendSMSNotification(this.selectedPatient.mobile, purchase.id, this.selectedPatient.id);
+
+        this.showToast('Purchase completed successfully');
+        this.resetSaleForm();
+        this.loadSellerDashboard();
+    },
+
+    triggerAIAnalysis(patientID) {
+        // This is where AI analysis would happen in a real app
+        // For the prototype, we just show that it's being analyzed
+        console.log('AI analyzing patient history for:', patientID);
+    },
+
+    sendSMSNotification(mobile, receiptID, patientID) {
+        const message = `Your medicine purchase has been recorded.\nReceipt ID: ${receiptID}\nPatient ID: ${patientID}`;
+        
+        const toast = document.getElementById('smsToast');
+        document.getElementById('smsMessage').textContent = message;
+        toast.style.display = 'block';
+
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 5000);
+    },
+
+    resetSaleForm() {
+        this.currentSaleItems = [];
+        this.selectedPatient = null;
+        document.getElementById('patientSearchInput').value = '';
+        document.getElementById('patientSearchResults').style.display = 'none';
+        document.getElementById('selectedPatientInfo').style.display = 'none';
+        document.getElementById('medicineSelectorContainer').style.display = 'none';
+        document.getElementById('saleItemsList').innerHTML = '<p class="empty-state">No medicines added yet</p>';
+        document.getElementById('saleSummary').style.display = 'none';
+        document.getElementById('noMedicinesWarning').style.display = 'block';
+    },
+
+    openCreatePatientModal() {
+        document.getElementById('createPatientModal').classList.add('show');
+    },
+
+    displayRecentSales() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.storeID === this.currentUser.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+
+        const panel = document.getElementById('recentSalesPanel');
+
+        if (purchases.length === 0) {
+            panel.innerHTML = '<p class="empty-state">No sales yet</p>';
+            return;
+        }
+
+        panel.innerHTML = purchases.map(purchase => {
+            const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            const patient = patients.find(p => p.id === purchase.patientID);
+
+            return `
+                <div class="sales-item">
+                    <div class="sales-item-info">
+                        <div class="sales-item-name">${patient ? patient.name : 'Unknown'}</div>
+                        <div class="sales-item-details">${purchase.id} • ${new Date(purchase.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="sales-item-amount">₹${purchase.total.toFixed(2)}</div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    displayLowStockAlerts() {
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]')
+            .filter(m => m.stock < 20)
+            .sort((a, b) => a.stock - b.stock);
+
+        const panel = document.getElementById('lowStockPanel');
+
+        if (medicines.length === 0) {
+            panel.innerHTML = '<p class="empty-state">All medicines in stock</p>';
+            return;
+        }
+
+        panel.innerHTML = medicines.map(medicine => `
+            <div class="alert alert-warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <h3>${medicine.name}</h3>
+                    <p>Only ${medicine.stock} units remaining</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    displayExpiringMedicines() {
+        const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+        const today = new Date();
+        const thirtyDaysLater = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        const expiring = medicines.filter(m => {
+            const expiryDate = new Date(m.expiry);
+            return expiryDate <= thirtyDaysLater && expiryDate >= today;
+        });
+
+        const panel = document.getElementById('expiringPanel');
+
+        if (expiring.length === 0) {
+            panel.innerHTML = '<p class="empty-state">No medicines expiring soon</p>';
+            return;
+        }
+
+        panel.innerHTML = expiring.map(medicine => `
+            <div class="alert alert-danger">
+                <div class="alert-icon">🔴</div>
+                <div class="alert-content">
+                    <h3>${medicine.name}</h3>
+                    <p>Expires on ${new Date(medicine.expiry).toLocaleDateString()}</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    displayPatientsList() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.storeID === this.currentUser.id);
+
+        const patientIDs = new Set(purchases.map(p => p.patientID));
+        const patients = JSON.parse(localStorage.getItem('patients') || '[]')
+            .filter(p => patientIDs.has(p.id));
+
+        const searchTerm = document.getElementById('patientListSearch').value.toLowerCase();
+        const filtered = patients.filter(p => 
+            p.name.toLowerCase().includes(searchTerm) || 
+            p.id.includes(searchTerm)
+        );
+
+        const list = document.getElementById('patientsList');
+
+        if (filtered.length === 0) {
+            list.innerHTML = '<p class="empty-state">No patients yet</p>';
+            return;
+        }
+
+        list.innerHTML = filtered.map(patient => {
+            const patientPurchases = purchases.filter(p => p.patientID === patient.id);
+            return `
+                <div class="patient-item">
+                    <div class="patient-item-name">${patient.name}</div>
+                    <div class="patient-item-detail">
+                        <span class="patient-item-label">Patient ID:</span>
+                        <span class="patient-item-value">${patient.id}</span>
+                    </div>
+                    <div class="patient-item-detail">
+                        <span class="patient-item-label">Mobile:</span>
+                        <span class="patient-item-value">${patient.mobile}</span>
+                    </div>
+                    <div class="patient-item-detail">
+                        <span class="patient-item-label">Purchases:</span>
+                        <span class="patient-item-value">${patientPurchases.length}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    displaySalesHistory() {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.storeID === this.currentUser.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const searchTerm = document.getElementById('salesSearch').value.toLowerCase();
+
+        const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+        const filtered = purchases.filter(p => {
+            const patient = patients.find(pa => pa.id === p.patientID);
+            return (patient && patient.name.toLowerCase().includes(searchTerm)) || p.id.includes(searchTerm);
+        });
+
+        const list = document.getElementById('salesList');
+
+        if (filtered.length === 0) {
+            list.innerHTML = '<p class="empty-state">No sales found</p>';
+            return;
+        }
+
+        list.innerHTML = filtered.map(purchase => {
+            const patient = patients.find(p => p.id === purchase.patientID);
+            return `
+                <div class="sales-history-item">
+                    <div class="sales-history-info">
+                        <div class="sales-history-title">${patient ? patient.name : 'Unknown'}</div>
+                        <div class="sales-history-meta">${purchase.id} • ${new Date(purchase.date).toLocaleString()}</div>
+                        <div class="sales-history-meta">${purchase.items.map(i => i.medicineName).join(', ')}</div>
+                    </div>
+                    <div class="sales-history-amount">₹${purchase.total.toFixed(2)}</div>
+                    <button class="btn btn-small" onclick="app.showReceipt('${purchase.id}')">Receipt</button>
+                </div>
+            `;
+        }).join('');
+    },
+
+    displayStoreReports() {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]')
+            .filter(p => p.storeID === this.currentUser.id)
+            .map(p => p.id);
+
+        const storeReports = reports.filter(r => purchases.includes(r.receiptID));
+
+        const list = document.getElementById('storeReportsList');
+
+        if (storeReports.length === 0) {
+            list.innerHTML = '<p class="empty-state">No reports submitted</p>';
+            return;
+        }
+
+        list.innerHTML = storeReports.map(report => `
+            <div class="report-item">
+                <div class="report-header">
+                    <div class="report-id">Report #${report.id}</div>
+                    <span class="report-status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span>
+                </div>
+                <div class="report-details">
+                    <p><strong>Patient ID:</strong> ${report.patientID}</p>
+                    <p><strong>Receipt:</strong> ${report.receiptID}</p>
+                    <p><strong>Medicine:</strong> ${report.medicine}</p>
+                    <p><strong>Issue:</strong> ${report.issueType}</p>
+                    <p><strong>Description:</strong> ${report.description}</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    setupSellerListeners() {
+        document.getElementById('inventorySearch').addEventListener('input', () => this.displayInventory());
+        document.getElementById('inventoryFilter').addEventListener('change', () => this.displayInventory());
+        document.getElementById('patientListSearch').addEventListener('input', () => this.displayPatientsList());
+        document.getElementById('salesSearch').addEventListener('input', () => this.displaySalesHistory());
+
+        document.getElementById('createPatientForm').addEventListener('submit', e => {
+            e.preventDefault();
+
+            const name = document.getElementById('newPatientName').value;
+            const mobile = document.getElementById('newPatientMobile').value;
+
+            let patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            const newPatient = {
+                id: 'P-' + Date.now(),
+                name,
+                mobile,
+                email: `${name.replace(/\s/g, '').toLowerCase()}@patient.com`
+            };
+
+            patients.push(newPatient);
+            localStorage.setItem('patients', JSON.stringify(patients));
+
+            // Also create user account if doesn't exist
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            if (!users.find(u => u.mobile === mobile && u.role === 'buyer')) {
+                users.push({
+                    id: newPatient.id,
+                    name,
+                    mobile,
+                    email: newPatient.email,
+                    password: 'password',
+                    role: 'buyer'
+                });
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+
+            this.selectedPatient = newPatient;
+            document.getElementById('createPatientModal').classList.remove('show');
+            document.getElementById('createPatientForm').reset();
+
+            // Update patient info display
+            document.getElementById('selectedPatientInfo').style.display = 'block';
+            document.getElementById('salePatientName').textContent = newPatient.name;
+            document.getElementById('salePatientID').textContent = newPatient.id;
+            document.getElementById('salePatientMobile').textContent = newPatient.mobile;
+            document.getElementById('medicineSelectorContainer').style.display = 'block';
+
+            this.showToast(`Patient ${name} created successfully`);
+        });
+    }
+});
+
+// ===================== UTILITIES =====================
+
+Object.assign(app, {
+    showToast(message) {
+        const toast = document.getElementById('smsToast');
+        document.getElementById('smsMessage').textContent = message;
+        toast.style.display = 'block';
+
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+});
+
+// ===================== INITIALIZATION =====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+// Close modals on close button or outside click
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', e => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+});
+
+</script>
+</body>
+</html>

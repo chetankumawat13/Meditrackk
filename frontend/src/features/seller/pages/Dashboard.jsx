@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useStore } from '../hooks/useStore.js';
 import ReceiptModal from '../../shared/components/ReceiptModal.jsx';
